@@ -167,4 +167,3 @@ Tutup aplikasi sebelum backup seluruh folder. Menyalin database saja tidak menye
 | FFmpeg tidak ditemukan di Linux/macOS | Pastikan FFmpeg tersedia pada `PATH` aplikasi. Paket `.deb` mendeklarasikan dependensinya; AppImage/macOS memerlukan penyiapan sistem. Pengguna lanjutan dapat memakai variabel `FFMPEG_PATH` ke executable yang benar. |
 
 Jika belum teratasi, [buat issue](https://github.com/KrisnaZxx/De-Story/issues/new) berisi versi, OS/arsitektur, langkah kejadian, dan pesan error. Sensor informasi akun pada log/screenshot.
-
