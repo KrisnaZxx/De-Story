@@ -106,6 +106,11 @@ class ManagedSessions:
 
     async def snapshot(self, manager):
         self._load()
+        for profile_id, runtime in list(self.running.items()):
+            if not runtime["browser"].is_connected():
+                await self.close(profile_id)
+                if self.records[profile_id]["state"] == "login":
+                    self.changed(self.records[profile_id], "idle")
         tokens = await manager.db.get_all_tokens()
         by_id = {t.id: t for t in tokens}
         profiles = []
@@ -133,7 +138,9 @@ class ManagedSessions:
     async def _browser(self, p, manager, visible):
         profile_id = p["id"]
         if profile_id in self.running:
-            return self.running[profile_id]["context"]
+            if self.running[profile_id]["browser"].is_connected():
+                return self.running[profile_id]["context"]
+            await self.close(profile_id)
         executable = chrome_path()
         if not executable:
             raise RuntimeError("Chrome/Chromium belum tersedia. Pasang Chrome atau siapkan runtime Flow2API.")

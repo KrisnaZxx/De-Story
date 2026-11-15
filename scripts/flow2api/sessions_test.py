@@ -59,6 +59,17 @@ class SessionsTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNotNone(p["lastSync"])
         self.sessions._browser.assert_not_called()
 
+    async def test_manually_closed_login_browser_is_released(self):
+        p = self.sessions.attach(self.tokens[0])
+        self.sessions.changed(p, "login")
+        browser = SimpleNamespace(is_connected=lambda: False, close=AsyncMock())
+        self.sessions.running[p["id"]] = {"browser":browser,"process":None}
+        result = await self.sessions.snapshot(self.manager)
+        self.assertFalse(result["profiles"][0]["browserOpen"])
+        self.assertEqual(result["profiles"][0]["state"], "idle")
+        self.assertIsNotNone(self.sessions.bound(1))
+        browser.close.assert_awaited_once()
+
     async def test_open_login_is_not_disturbed_by_background_renewal(self):
         p = self.sessions.attach(self.tokens[0])
         self.sessions.busy.add(p["id"])
