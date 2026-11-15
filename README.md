@@ -4,17 +4,17 @@
 
 ## Unduh aplikasi
 
-**[⬇ Unduh untuk Windows](https://github.com/KrisnaZxx/De-Story/releases/download/v1.2.1/De.Story_1.2.1_x64-setup.exe)** · **[Semua rilis](https://github.com/KrisnaZxx/De-Story/releases)**
+**[⬇ Unduh untuk Windows](https://github.com/KrisnaZxx/De-Story/releases/download/v1.3.0/De.Story_1.3.0_x64-setup.exe)** · **[Semua rilis](https://github.com/KrisnaZxx/De-Story/releases)**
 
-**v1.2.1 · rilis uji publik. Unduh satu installer sesuai perangkatmu.**
+**v1.3.0 · rilis uji publik. Unduh satu installer sesuai perangkatmu.**
 
 | Perangkat | File yang dipilih | Ukuran |
 | --- | --- | --- |
-| Windows x64 | **[Installer .exe](https://github.com/KrisnaZxx/De-Story/releases/download/v1.2.1/De.Story_1.2.1_x64-setup.exe)** | ±311 MB |
-| Ubuntu / Debian desktop x64 | **[Paket .deb](https://github.com/KrisnaZxx/De-Story/releases/download/v1.2.1/De.Story_1.2.1_amd64.deb)** | ±549 MB |
-| macOS Apple Silicon (M1/M2/M3 dan seterusnya) | **[Installer .dmg](https://github.com/KrisnaZxx/De-Story/releases/download/v1.2.1/De.Story_1.2.1_aarch64.dmg)** | ±510 MB |
+| Windows x64 | **[Installer .exe](https://github.com/KrisnaZxx/De-Story/releases/download/v1.3.0/De.Story_1.3.0_x64-setup.exe)** | ±311 MB |
+| Ubuntu / Debian desktop x64 | **[Paket .deb](https://github.com/KrisnaZxx/De-Story/releases/download/v1.3.0/De.Story_1.3.0_amd64.deb)** | ±549 MB |
+| macOS Apple Silicon (M1/M2/M3 dan seterusnya) | **[Installer .dmg](https://github.com/KrisnaZxx/De-Story/releases/download/v1.3.0/De.Story_1.3.0_aarch64.dmg)** | ±510 MB |
 
-Alternatif: [Windows .msi](https://github.com/KrisnaZxx/De-Story/releases/download/v1.2.1/De.Story_1.2.1_x64_en-US.msi) · [Linux .AppImage](https://github.com/KrisnaZxx/De-Story/releases/download/v1.2.1/De.Story_1.2.1_amd64.AppImage) · [Checksum SHA-256](https://github.com/KrisnaZxx/De-Story/releases/download/v1.2.1/SHA256SUMS).
+Alternatif: [Windows .msi](https://github.com/KrisnaZxx/De-Story/releases/download/v1.3.0/De.Story_1.3.0_x64_en-US.msi) · [Linux .AppImage](https://github.com/KrisnaZxx/De-Story/releases/download/v1.3.0/De.Story_1.3.0_amd64.AppImage) · [Checksum SHA-256](https://github.com/KrisnaZxx/De-Story/releases/download/v1.3.0/SHA256SUMS).
 
 File **Source code** untuk pengembang. Pengguna biasa cukup memakai installer di atas. Paket macOS Intel dan Linux ARM belum tersedia. Build Linux/macOS sudah berhasil; penggunaan GUI-nya belum diuji langsung.
 
