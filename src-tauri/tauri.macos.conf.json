@@ -1,0 +1,10 @@
+{
+  "bundle": {
+    "resources": {
+      "../resources/fonts/": "resources/fonts/",
+      "../resources/whisper-unix/": "resources/whisper/",
+      "../resources/licenses/": "resources/licenses/",
+      "flow2api/": "flow2api/"
+    }
+  }
+}

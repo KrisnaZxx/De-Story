@@ -1,0 +1,10 @@
+{
+  "bundle": {
+    "resources": {
+      "../resources/whisper/": "resources/whisper/",
+      "../node_modules/ffmpeg-static/ffmpeg.exe": "resources/ffmpeg.exe",
+      "../node_modules/ffmpeg-static/ffmpeg.exe.LICENSE": "resources/licenses/FFmpeg-GPL-v3.txt",
+      "../node_modules/ffmpeg-static/ffmpeg.exe.README": "resources/licenses/FFmpeg-build-and-source.txt"
+    }
+  }
+}

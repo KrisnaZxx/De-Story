@@ -1,0 +1,1023 @@
+{
+  "models": [
+    {
+      "id": "vidgen:gemini-omni-1.2-unlimited",
+      "name": "Omni 1.2 Flash Unlimited · Vidgen",
+      "family": "Vidgen",
+      "kind": "video",
+      "input": {
+        "field": "references",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "enum": [
+            "720p",
+            "1080p"
+          ]
+        },
+        "aspect_ratio": {
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ]
+        }
+      },
+      "durations": {
+        "values": [
+          15
+        ]
+      },
+      "tags": [
+        "Vidgen",
+        "Unlimited",
+        "Omni",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "vidgen:gpt-image-2.6-sunburst",
+      "name": "GPT Image 2.6 Sunburst · Vidgen",
+      "family": "Vidgen",
+      "kind": "image",
+      "input": {
+        "field": "references",
+        "mode": "reference",
+        "max": 16
+      },
+      "required": [],
+      "props": {
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9"
+          ]
+        }
+      },
+      "tags": [
+        "Vidgen",
+        "Kredit berbayar"
+      ],
+      "durations": null
+    },
+    {
+      "id": "vidgen:gpt-image-2.6-flare",
+      "name": "GPT Image 2.6 Flare · Vidgen",
+      "family": "Vidgen",
+      "kind": "image",
+      "input": {
+        "field": "references",
+        "mode": "reference",
+        "max": 16
+      },
+      "required": [],
+      "props": {
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9"
+          ]
+        }
+      },
+      "tags": [
+        "Vidgen",
+        "Kredit berbayar"
+      ],
+      "durations": null
+    },
+    {
+      "id": "vidgen:gpt-image-2.5-sunburst-lite",
+      "name": "GPT Image 2.5 Sunburst · Vidgen",
+      "family": "Vidgen",
+      "kind": "image",
+      "input": {
+        "field": "references",
+        "mode": "reference",
+        "max": 16
+      },
+      "required": [],
+      "props": {
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9",
+            "auto"
+          ]
+        }
+      },
+      "tags": [
+        "Vidgen",
+        "Kredit berbayar"
+      ],
+      "durations": null
+    },
+    {
+      "id": "vidgen:gpt-image-2.5-flare-lite",
+      "name": "GPT Image 2.5 Flare · Vidgen",
+      "family": "Vidgen",
+      "kind": "image",
+      "input": {
+        "field": "references",
+        "mode": "reference",
+        "max": 16
+      },
+      "required": [],
+      "props": {
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9",
+            "auto"
+          ]
+        }
+      },
+      "tags": [
+        "Vidgen",
+        "Kredit berbayar"
+      ],
+      "durations": null
+    },
+    {
+      "id": "vidgen:nano-banana-2.1",
+      "name": "Nano Banana 2.1 · Vidgen",
+      "family": "Vidgen",
+      "kind": "image",
+      "input": {
+        "field": "references",
+        "mode": "reference",
+        "max": 14
+      },
+      "required": [],
+      "props": {
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9"
+          ]
+        }
+      },
+      "tags": [
+        "Vidgen",
+        "Kredit berbayar"
+      ],
+      "durations": null
+    },
+    {
+      "id": "vidgen:nano-banana-2-lite",
+      "name": "Nano Banana 2 Lite · Vidgen",
+      "family": "Vidgen",
+      "kind": "image",
+      "input": {
+        "field": "references",
+        "mode": "reference",
+        "max": 14
+      },
+      "required": [],
+      "props": {
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9"
+          ]
+        }
+      },
+      "tags": [
+        "Vidgen",
+        "Kredit berbayar"
+      ],
+      "durations": null
+    },
+    {
+      "id": "vidgen:nano-banana-2",
+      "name": "Nano Banana 2 · Vidgen",
+      "family": "Vidgen",
+      "kind": "image",
+      "input": {
+        "field": "references",
+        "mode": "reference",
+        "max": 14
+      },
+      "required": [],
+      "props": {
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9",
+            "1:4",
+            "4:1",
+            "1:8",
+            "8:1"
+          ]
+        }
+      },
+      "tags": [
+        "Vidgen",
+        "Kredit berbayar"
+      ],
+      "durations": null
+    },
+    {
+      "id": "vidgen:nano-banana-pro",
+      "name": "Nano Banana Pro · Vidgen",
+      "family": "Vidgen",
+      "kind": "image",
+      "input": {
+        "field": "references",
+        "mode": "reference",
+        "max": 8
+      },
+      "required": [],
+      "props": {
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9"
+          ]
+        }
+      },
+      "tags": [
+        "Vidgen",
+        "Kredit berbayar"
+      ],
+      "durations": null
+    },
+    {
+      "id": "vidgen:wan2.7-image-spicy",
+      "name": "Wan 2.7 Spicy · Vidgen",
+      "family": "Vidgen",
+      "kind": "image",
+      "input": {
+        "field": "references",
+        "mode": "reference",
+        "max": 9
+      },
+      "required": [],
+      "props": {
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9",
+            "1:4",
+            "4:1",
+            "1:8",
+            "8:1"
+          ]
+        }
+      },
+      "tags": [
+        "Vidgen",
+        "Kredit berbayar"
+      ],
+      "durations": null
+    },
+    {
+      "id": "vidgen:wan2.7-image-pro-spicy",
+      "name": "Wan 2.7 Pro Spicy · Vidgen",
+      "family": "Vidgen",
+      "kind": "image",
+      "input": {
+        "field": "references",
+        "mode": "reference",
+        "max": 9
+      },
+      "required": [],
+      "props": {
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "2:3",
+            "3:2",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9",
+            "1:4",
+            "4:1",
+            "1:8",
+            "8:1"
+          ]
+        }
+      },
+      "tags": [
+        "Vidgen",
+        "Kredit berbayar"
+      ],
+      "durations": null
+    },
+    {
+      "id": "vidgen:seedream-5.0-flash",
+      "name": "Seedream 5.0 Flash · Vidgen",
+      "family": "Vidgen",
+      "kind": "image",
+      "input": {
+        "field": "references",
+        "mode": "reference",
+        "max": 10
+      },
+      "required": [],
+      "props": {
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "2:3",
+            "3:2",
+            "21:9"
+          ]
+        }
+      },
+      "tags": [
+        "Vidgen",
+        "Kredit berbayar"
+      ],
+      "durations": null
+    },
+    {
+      "id": "vidgen:seedream-5.0-pro",
+      "name": "Seedream 5.0 Pro · Vidgen",
+      "family": "Vidgen",
+      "kind": "image",
+      "input": {
+        "field": "references",
+        "mode": "reference",
+        "max": 10
+      },
+      "required": [],
+      "props": {
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "2:3",
+            "3:2",
+            "21:9"
+          ]
+        }
+      },
+      "tags": [
+        "Vidgen",
+        "Kredit berbayar"
+      ],
+      "durations": null
+    },
+    {
+      "id": "vidgen:seedream-5.5",
+      "name": "Seedream 5.5 · Vidgen",
+      "family": "Vidgen",
+      "kind": "image",
+      "input": {
+        "field": "references",
+        "mode": "reference",
+        "max": 10
+      },
+      "required": [],
+      "props": {
+        "aspect_ratio": {
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "2:3",
+            "3:2",
+            "21:9"
+          ]
+        }
+      },
+      "tags": [
+        "Vidgen",
+        "Kredit berbayar"
+      ],
+      "durations": null
+    }
+  ],
+  "imagePricing": [
+    {
+      "id": "gpt-image-2.6-sunburst",
+      "label": "GPT Image 2.6 Sunburst",
+      "category": "Image",
+      "mode": "image",
+      "creditsDefault": 0.6,
+      "priceMatrix": {
+        "1K": 0.6,
+        "2K": 0.8,
+        "4K": 1.1
+      },
+      "unlimitedOnly": false,
+      "capabilities": {
+        "durations": [],
+        "ratios": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "maxReferenceImages": 16,
+        "maxReferenceVideos": 0,
+        "maxReferenceAudios": 0,
+        "qualities": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "backgrounds": [
+          "auto",
+          "opaque",
+          "transparent"
+        ],
+        "outputFormats": [
+          "png",
+          "jpeg",
+          "webp"
+        ]
+      }
+    },
+    {
+      "id": "gpt-image-2.6-flare",
+      "label": "GPT Image 2.6 Flare",
+      "category": "Image",
+      "mode": "image",
+      "creditsDefault": 0.6,
+      "priceMatrix": {
+        "1K": 0.6,
+        "2K": 0.8,
+        "4K": 1.1
+      },
+      "unlimitedOnly": false,
+      "capabilities": {
+        "durations": [],
+        "ratios": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "maxReferenceImages": 16,
+        "maxReferenceVideos": 0,
+        "maxReferenceAudios": 0,
+        "qualities": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "backgrounds": [
+          "auto",
+          "opaque",
+          "transparent"
+        ],
+        "outputFormats": [
+          "png",
+          "jpeg",
+          "webp"
+        ]
+      }
+    },
+    {
+      "id": "gpt-image-2.5-sunburst-lite",
+      "label": "GPT Image 2.5 Sunburst",
+      "category": "Image",
+      "mode": "image",
+      "creditsDefault": 0.8,
+      "priceMatrix": {
+        "1K": 0.8,
+        "2K": 1.7,
+        "4K": 3.3
+      },
+      "unlimitedOnly": false,
+      "capabilities": {
+        "durations": [],
+        "ratios": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9",
+          "auto"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "maxReferenceImages": 16,
+        "maxReferenceVideos": 0,
+        "maxReferenceAudios": 0,
+        "qualities": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "backgrounds": [
+          "auto",
+          "opaque",
+          "transparent"
+        ]
+      }
+    },
+    {
+      "id": "gpt-image-2.5-flare-lite",
+      "label": "GPT Image 2.5 Flare",
+      "category": "Image",
+      "mode": "image",
+      "creditsDefault": 0.6,
+      "priceMatrix": {
+        "1K": 0.6,
+        "2K": 1.1,
+        "4K": 2.2
+      },
+      "unlimitedOnly": false,
+      "capabilities": {
+        "durations": [],
+        "ratios": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9",
+          "auto"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "maxReferenceImages": 16,
+        "maxReferenceVideos": 0,
+        "maxReferenceAudios": 0,
+        "qualities": [
+          "low",
+          "medium",
+          "high",
+          "xhigh",
+          "max"
+        ],
+        "backgrounds": [
+          "auto",
+          "opaque",
+          "transparent"
+        ]
+      }
+    },
+    {
+      "id": "nano-banana-2.1",
+      "label": "Nano Banana 2.1",
+      "category": "Image",
+      "mode": "image",
+      "creditsDefault": 0.6,
+      "priceMatrix": {
+        "1K": 0.6,
+        "2K": 1.1,
+        "4K": 1.4
+      },
+      "unlimitedOnly": false,
+      "capabilities": {
+        "durations": [],
+        "ratios": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "maxReferenceImages": 14,
+        "maxReferenceVideos": 0,
+        "maxReferenceAudios": 0
+      }
+    },
+    {
+      "id": "nano-banana-2-lite",
+      "label": "Nano Banana 2 Lite",
+      "category": "Image",
+      "mode": "image",
+      "creditsDefault": 0.6,
+      "priceMatrix": {
+        "1K": 0.6
+      },
+      "unlimitedOnly": false,
+      "capabilities": {
+        "durations": [],
+        "ratios": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K"
+        ],
+        "maxReferenceImages": 14,
+        "maxReferenceVideos": 0,
+        "maxReferenceAudios": 0
+      }
+    },
+    {
+      "id": "nano-banana-2",
+      "label": "Nano Banana 2",
+      "category": "Image",
+      "mode": "image",
+      "creditsDefault": 1.1,
+      "priceMatrix": {
+        "1K": 1.1,
+        "2K": 1.7,
+        "4K": 2.2,
+        "512px": 1.1
+      },
+      "unlimitedOnly": false,
+      "capabilities": {
+        "durations": [],
+        "ratios": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9",
+          "1:4",
+          "4:1",
+          "1:8",
+          "8:1"
+        ],
+        "resolutions": [
+          "512px",
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "maxReferenceImages": 14,
+        "maxReferenceVideos": 0,
+        "maxReferenceAudios": 0
+      }
+    },
+    {
+      "id": "nano-banana-pro",
+      "label": "Nano Banana Pro",
+      "category": "Image",
+      "mode": "image",
+      "creditsDefault": 1.7,
+      "priceMatrix": {
+        "1K": 1.7,
+        "2K": 2.5,
+        "4K": 3.3
+      },
+      "unlimitedOnly": false,
+      "capabilities": {
+        "durations": [],
+        "ratios": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "maxReferenceImages": 8,
+        "maxReferenceVideos": 0,
+        "maxReferenceAudios": 0
+      }
+    },
+    {
+      "id": "wan2.7-image-spicy",
+      "label": "Wan 2.7 Spicy",
+      "category": "Image",
+      "mode": "image",
+      "creditsDefault": 0.8,
+      "priceMatrix": {
+        "1K": 0.8,
+        "2K": 0.8
+      },
+      "unlimitedOnly": false,
+      "capabilities": {
+        "durations": [],
+        "ratios": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9",
+          "1:4",
+          "4:1",
+          "1:8",
+          "8:1"
+        ],
+        "resolutions": [
+          "1K",
+          "2K"
+        ],
+        "maxReferenceImages": 9,
+        "maxReferenceVideos": 0,
+        "maxReferenceAudios": 0
+      }
+    },
+    {
+      "id": "wan2.7-image-pro-spicy",
+      "label": "Wan 2.7 Pro Spicy",
+      "category": "Image",
+      "mode": "image",
+      "creditsDefault": 2.1,
+      "priceMatrix": {
+        "1K": 2.1,
+        "2K": 2.1,
+        "4K": 2.1
+      },
+      "unlimitedOnly": false,
+      "capabilities": {
+        "durations": [],
+        "ratios": [
+          "1:1",
+          "2:3",
+          "3:2",
+          "3:4",
+          "4:3",
+          "4:5",
+          "5:4",
+          "9:16",
+          "16:9",
+          "21:9",
+          "1:4",
+          "4:1",
+          "1:8",
+          "8:1"
+        ],
+        "resolutions": [
+          "1K",
+          "2K",
+          "4K"
+        ],
+        "maxReferenceImages": 9,
+        "maxReferenceVideos": 0,
+        "maxReferenceAudios": 0
+      }
+    },
+    {
+      "id": "seedream-5.0-flash",
+      "label": "Seedream 5.0 Flash",
+      "category": "Image",
+      "mode": "image",
+      "creditsDefault": 0.5,
+      "priceMatrix": {
+        "1K": 0.5,
+        "2K": 0.5,
+        "1.5K": 0.5
+      },
+      "unlimitedOnly": false,
+      "capabilities": {
+        "durations": [],
+        "ratios": [
+          "1:1",
+          "4:3",
+          "3:4",
+          "16:9",
+          "9:16",
+          "2:3",
+          "3:2",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "1.5K",
+          "2K"
+        ],
+        "maxReferenceImages": 10,
+        "maxReferenceVideos": 0,
+        "maxReferenceAudios": 0,
+        "backgrounds": [
+          "opaque",
+          "transparent"
+        ]
+      }
+    },
+    {
+      "id": "seedream-5.0-pro",
+      "label": "Seedream 5.0 Pro",
+      "category": "Image",
+      "mode": "image",
+      "creditsDefault": 1,
+      "priceMatrix": {
+        "1K": 1,
+        "2K": 1.9,
+        "1.5K": 1
+      },
+      "unlimitedOnly": false,
+      "capabilities": {
+        "durations": [],
+        "ratios": [
+          "1:1",
+          "4:3",
+          "3:4",
+          "16:9",
+          "9:16",
+          "2:3",
+          "3:2",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "1.5K",
+          "2K"
+        ],
+        "maxReferenceImages": 10,
+        "maxReferenceVideos": 0,
+        "maxReferenceAudios": 0,
+        "backgrounds": [
+          "opaque",
+          "transparent"
+        ]
+      }
+    },
+    {
+      "id": "seedream-5.5",
+      "label": "Seedream 5.5",
+      "category": "Image",
+      "mode": "image",
+      "creditsDefault": 0.6,
+      "priceMatrix": {
+        "1K": 0.6,
+        "2K": 0.7,
+        "1.5K": 0.6
+      },
+      "unlimitedOnly": false,
+      "capabilities": {
+        "durations": [],
+        "ratios": [
+          "1:1",
+          "4:3",
+          "3:4",
+          "16:9",
+          "9:16",
+          "2:3",
+          "3:2",
+          "21:9"
+        ],
+        "resolutions": [
+          "1K",
+          "1.5K",
+          "2K"
+        ],
+        "maxReferenceImages": 10,
+        "maxReferenceVideos": 0,
+        "maxReferenceAudios": 0,
+        "backgrounds": [
+          "opaque",
+          "transparent"
+        ]
+      }
+    }
+  ]
+}

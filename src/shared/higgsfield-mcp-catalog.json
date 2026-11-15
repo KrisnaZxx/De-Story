@@ -1,0 +1,3865 @@
+{
+  "source": "https://mcp.higgsfield.ai/mcp (models_list)",
+  "updatedAt": "2026-11-14",
+  "models": [
+    {
+      "id": "hfmcp:soul_2",
+      "name": "Higgsfield Soul 2.0 · MCP",
+      "family": "Higgsfield",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "quality": {
+          "type": "string",
+          "default": "2k",
+          "enum": [
+            "1.5k",
+            "2k"
+          ]
+        },
+        "style_id": {
+          "type": "string"
+        },
+        "soul_id": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:soul_cinematic",
+      "name": "Soul Cinema · MCP",
+      "family": "Higgsfield",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "quality": {
+          "type": "string",
+          "default": "2k",
+          "enum": [
+            "1.5k",
+            "2k"
+          ]
+        },
+        "soul_id": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "3:2",
+            "2:3",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:gpt_image_2",
+      "name": "GPT Image 2 · MCP",
+      "family": "GPT Image",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 4
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "1k",
+            "2k",
+            "4k"
+          ]
+        },
+        "quality": {
+          "type": "string",
+          "default": "low",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "21:9",
+            "9:16",
+            "3:2",
+            "2:3"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:cinematic_studio_2_5",
+      "name": "Cinema Studio Image 2.5 · MCP",
+      "family": "Higgsfield",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 4
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "1k",
+            "2k",
+            "4k"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "4:5",
+            "5:4",
+            "16:9",
+            "9:16",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:marketing_studio_image",
+      "name": "Marketing Studio Image · MCP",
+      "family": "Higgsfield",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 4
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "1k",
+            "2k",
+            "4k"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:image_auto",
+      "name": "Auto · MCP",
+      "family": "Higgsfield",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 4
+      },
+      "required": [],
+      "props": {
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:soul_cast",
+      "name": "Soul Cast · MCP",
+      "family": "Higgsfield",
+      "kind": "image",
+      "input": {
+        "field": null,
+        "mode": "none",
+        "max": 0
+      },
+      "required": [],
+      "props": {
+        "budget": {
+          "type": "number",
+          "default": 50
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP"
+      ]
+    },
+    {
+      "id": "hfmcp:soul_location",
+      "name": "Soul Location · MCP",
+      "family": "Higgsfield",
+      "kind": "image",
+      "input": {
+        "field": null,
+        "mode": "none",
+        "max": 0
+      },
+      "required": [],
+      "props": {
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "3:2",
+            "2:3",
+            "21:9",
+            "9:21"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP"
+      ]
+    },
+    {
+      "id": "hfmcp:soul_v2",
+      "name": "Higgsfield Soul 2.0 · MCP",
+      "family": "Higgsfield",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "quality": {
+          "type": "string",
+          "default": "2k",
+          "enum": [
+            "1.5k",
+            "2k"
+          ]
+        },
+        "style_id": {
+          "type": "string"
+        },
+        "soul_id": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:z_image",
+      "name": "Z Image · MCP",
+      "family": "Tongyi-MAI",
+      "kind": "image",
+      "input": {
+        "field": null,
+        "mode": "none",
+        "max": 0
+      },
+      "required": [],
+      "props": {
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP"
+      ]
+    },
+    {
+      "id": "hfmcp:nano_banana",
+      "name": "Nano Banana · MCP",
+      "family": "Gemini",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 8
+      },
+      "required": [],
+      "props": {
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:nano_banana_pro",
+      "name": "Nano Banana Pro · MCP",
+      "family": "Gemini",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 14
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "2k",
+          "enum": [
+            "1k",
+            "2k",
+            "4k"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:nano_banana_2",
+      "name": "Nano Banana 2 · MCP",
+      "family": "Gemini",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 4
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "1k",
+            "2k",
+            "4k"
+          ]
+        },
+        "is_inpaint": {
+          "type": "boolean",
+          "default": false
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:nano_banana_2_1",
+      "name": "Nano Banana 2.1 · MCP",
+      "family": "Gemini",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 14
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "1k",
+            "2k",
+            "4k"
+          ]
+        },
+        "is_inpaint": {
+          "type": "boolean",
+          "default": false
+        },
+        "thinking_level": {
+          "type": "string",
+          "default": "medium",
+          "enum": [
+            "minimal",
+            "medium",
+            "high"
+          ]
+        },
+        "enable_web_search": {
+          "type": "boolean"
+        },
+        "enable_image_search": {
+          "type": "boolean"
+        },
+        "seed": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9",
+            "4:1",
+            "1:4",
+            "8:1",
+            "1:8"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:nano_banana_2_lite",
+      "name": "Nano Banana 2 Lite · MCP",
+      "family": "Gemini",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 4
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "1k"
+          ]
+        },
+        "thinking": {
+          "type": "string",
+          "default": "HIGH",
+          "enum": [
+            "MINIMAL",
+            "HIGH"
+          ]
+        },
+        "is_inpaint": {
+          "type": "boolean",
+          "default": false
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:seedream_v4_5",
+      "name": "Seedream 4.5 · MCP",
+      "family": "Bytedance",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 14
+      },
+      "required": [],
+      "props": {
+        "quality": {
+          "type": "string",
+          "default": "basic",
+          "enum": [
+            "basic",
+            "high"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "4:3",
+            "16:9",
+            "3:2",
+            "21:9",
+            "3:4",
+            "9:16",
+            "2:3"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:flux_2",
+      "name": "FLUX.2 · MCP",
+      "family": "Black Forest Labs",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 4
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "1k",
+            "2k"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "default": "pro",
+          "enum": [
+            "pro",
+            "flex",
+            "max"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:flux_3_image",
+      "name": "FLUX 3 Image · MCP",
+      "family": "Black Forest Labs",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 10
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "768sq",
+            "1k",
+            "1.5k",
+            "2k",
+            "4k"
+          ]
+        },
+        "batch_size": {
+          "type": "number",
+          "default": 1,
+          "minimum": 1,
+          "maximum": 4
+        },
+        "folder_id": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "21:9",
+            "2:1",
+            "16:9",
+            "3:2",
+            "7:5",
+            "4:3",
+            "5:4",
+            "1:1",
+            "4:5",
+            "3:4",
+            "5:7",
+            "2:3",
+            "9:16",
+            "1:2"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:flux_kontext",
+      "name": "Flux Kontext · MCP",
+      "family": "Black Forest Labs",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 4
+      },
+      "required": [],
+      "props": {
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:kling_omni_image",
+      "name": "Kling O1 Image · MCP",
+      "family": "Kling",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 10
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "1k",
+            "2k"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:openai_hazel",
+      "name": "OpenAI Hazel · MCP",
+      "family": "GPT Image",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 16
+      },
+      "required": [],
+      "props": {
+        "quality": {
+          "type": "string",
+          "default": "medium",
+          "enum": [
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "3:2",
+            "2:3"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:gpt_image_2_5",
+      "name": "GPT Image 2.5 · MCP",
+      "family": "GPT Image",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 16
+      },
+      "required": [],
+      "props": {
+        "variant": {
+          "type": "string",
+          "default": "flare",
+          "enum": [
+            "flare",
+            "sunburst"
+          ]
+        },
+        "quality": {
+          "type": "string",
+          "default": "low",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ]
+        },
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "1k",
+            "2k",
+            "4k"
+          ]
+        },
+        "background": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "opaque",
+            "transparent"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "21:9",
+            "27:16",
+            "16:27",
+            "9:8",
+            "8:9",
+            "4:5",
+            "5:4"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:gpt_image_2_6",
+      "name": "GPT Image 2.6 · MCP",
+      "family": "GPT Image",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 16
+      },
+      "required": [],
+      "props": {
+        "quality": {
+          "type": "string",
+          "default": "low",
+          "enum": [
+            "auto",
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ]
+        },
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "1k",
+            "2k",
+            "4k"
+          ]
+        },
+        "background": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "opaque",
+            "transparent"
+          ]
+        },
+        "batch_size": {
+          "type": "number",
+          "default": 1,
+          "minimum": 1,
+          "maximum": 4
+        },
+        "output_format": {
+          "type": "string",
+          "default": "png",
+          "enum": [
+            "png",
+            "jpeg",
+            "webp",
+            "gif",
+            "svg"
+          ]
+        },
+        "size": {
+          "type": "string"
+        },
+        "frame_count": {
+          "type": "number",
+          "minimum": 2,
+          "maximum": 64
+        },
+        "frame_duration_ms": {
+          "type": "number",
+          "minimum": 20,
+          "maximum": 2000
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "21:9",
+            "27:16",
+            "16:27",
+            "9:8",
+            "8:9",
+            "4:5",
+            "5:4"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:gpt_image_2_6_flare",
+      "name": "GPT Image 2.6 Flare · MCP",
+      "family": "GPT Image",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 16
+      },
+      "required": [],
+      "props": {
+        "quality": {
+          "type": "string",
+          "default": "low",
+          "enum": [
+            "auto",
+            "low",
+            "medium",
+            "high",
+            "xhigh",
+            "max"
+          ]
+        },
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "1k",
+            "2k",
+            "4k"
+          ]
+        },
+        "background": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "opaque",
+            "transparent"
+          ]
+        },
+        "batch_size": {
+          "type": "number",
+          "default": 1,
+          "minimum": 1,
+          "maximum": 4
+        },
+        "output_format": {
+          "type": "string",
+          "default": "png",
+          "enum": [
+            "png",
+            "jpeg",
+            "webp",
+            "gif",
+            "svg"
+          ]
+        },
+        "size": {
+          "type": "string"
+        },
+        "frame_count": {
+          "type": "number",
+          "minimum": 2,
+          "maximum": 64
+        },
+        "frame_duration_ms": {
+          "type": "number",
+          "minimum": 20,
+          "maximum": 2000
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "21:9",
+            "27:16",
+            "16:27",
+            "9:8",
+            "8:9",
+            "4:5",
+            "5:4"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:soul_cinema_studio",
+      "name": "soul_cinema_studio · MCP",
+      "family": "",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 4
+      },
+      "required": [],
+      "props": {
+        "quality": {
+          "type": "string",
+          "default": "2k",
+          "enum": [
+            "1.5k",
+            "2k"
+          ]
+        },
+        "style_id": {
+          "type": "string"
+        },
+        "custom_reference_id": {
+          "type": "string"
+        },
+        "enhance_prompt": {
+          "type": "boolean",
+          "default": false
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:seedream_v5_lite",
+      "name": "Seedream 5.0 Lite · MCP",
+      "family": "Bytedance",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 4
+      },
+      "required": [],
+      "props": {
+        "quality": {
+          "type": "string",
+          "default": "basic",
+          "enum": [
+            "basic",
+            "high"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:seedream_5_0_flash",
+      "name": "Seedream 5.0 Flash · MCP",
+      "family": "Bytedance",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 10
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "2k",
+          "enum": [
+            "1k",
+            "1.5k",
+            "2k"
+          ]
+        },
+        "width": {
+          "type": "number",
+          "minimum": 1
+        },
+        "height": {
+          "type": "number",
+          "minimum": 1
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "3:2",
+            "2:3",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:seedream_5_5",
+      "name": "Seedream 5.5 · MCP",
+      "family": "Bytedance",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 10
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "2k",
+          "enum": [
+            "1k",
+            "1.5k",
+            "2k"
+          ]
+        },
+        "background": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "transparent",
+            "opaque"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "3:2",
+            "2:3",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:seedream_v5_pro",
+      "name": "Seedream 5.0 Pro · MCP",
+      "family": "Bytedance",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 10
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "2k",
+          "enum": [
+            "1k",
+            "1.5k",
+            "2k"
+          ]
+        },
+        "width": {
+          "type": "number",
+          "minimum": 1
+        },
+        "height": {
+          "type": "number",
+          "minimum": 1
+        },
+        "remove_bg": {
+          "type": "boolean",
+          "default": false
+        },
+        "is_inpaint": {
+          "type": "boolean",
+          "default": false
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16",
+            "3:2",
+            "2:3",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:grok_image",
+      "name": "Grok Image · MCP",
+      "family": "xAI",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 4
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "1k",
+            "2k"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "default": "std",
+          "enum": [
+            "std",
+            "quality"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "1:2",
+            "2:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:grok_image_2_0",
+      "name": "Grok Image 2.0 · MCP",
+      "family": "xAI",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 3
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "1k",
+            "2k"
+          ]
+        },
+        "quality": {
+          "type": "string",
+          "default": "medium",
+          "enum": [
+            "low",
+            "medium"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "1:2",
+            "2:1",
+            "3:2",
+            "2:3",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:ideogram_4_5",
+      "name": "Ideogram 4.5 · MCP",
+      "family": "Ideogram",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 5
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "2k",
+          "enum": [
+            "1k",
+            "2k"
+          ]
+        },
+        "quality": {
+          "type": "string",
+          "default": "high",
+          "enum": [
+            "very_low",
+            "low",
+            "medium",
+            "high"
+          ]
+        },
+        "magic_prompt": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "on",
+            "off"
+          ]
+        },
+        "seed": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "batch_size": {
+          "type": "number",
+          "default": 1,
+          "minimum": 1,
+          "maximum": 4
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "1:2",
+            "2:1",
+            "2:3",
+            "3:2",
+            "4:5",
+            "5:4",
+            "9:16",
+            "16:9",
+            "5:8",
+            "8:5",
+            "3:4",
+            "4:3",
+            "9:22",
+            "22:9",
+            "9:23",
+            "23:9",
+            "3:8",
+            "8:3",
+            "5:12",
+            "12:5",
+            "1:3",
+            "3:1"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:recraft_v4_1",
+      "name": "Recraft V4.1 · MCP",
+      "family": "Recraft",
+      "kind": "image",
+      "input": {
+        "field": null,
+        "mode": "none",
+        "max": 0
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "1k",
+          "enum": [
+            "1k",
+            "2k"
+          ]
+        },
+        "model_type": {
+          "type": "string",
+          "default": "standard",
+          "enum": [
+            "standard",
+            "vector",
+            "utility",
+            "utility_vector"
+          ]
+        },
+        "colors": {
+          "type": "string"
+        },
+        "background_color": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "3:4",
+            "4:3",
+            "4:5",
+            "5:4",
+            "3:2",
+            "2:3",
+            "16:9",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP"
+      ]
+    },
+    {
+      "id": "hfmcp:minimax_h3_image",
+      "name": "MiniMax H3 Image · MCP",
+      "family": "MiniMax",
+      "kind": "image",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 16
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "4k",
+          "enum": [
+            "1k",
+            "2k",
+            "4k"
+          ]
+        },
+        "batch_size": {
+          "type": "number",
+          "default": 1,
+          "minimum": 1,
+          "maximum": 4
+        },
+        "folder_id": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": []
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:cinematic_studio_soul_cast",
+      "name": "Cinematic Studio Soul Cast · MCP",
+      "family": "",
+      "kind": "image",
+      "input": {
+        "field": null,
+        "mode": "none",
+        "max": 0
+      },
+      "required": [],
+      "props": {
+        "budget": {
+          "type": "number",
+          "default": 50
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "5:4",
+            "4:5",
+            "21:9",
+            "9:21"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP"
+      ]
+    },
+    {
+      "id": "hfmcp:cinematic_studio_soul_location",
+      "name": "Cinematic Studio Soul Location · MCP",
+      "family": "",
+      "kind": "image",
+      "input": {
+        "field": null,
+        "mode": "none",
+        "max": 0
+      },
+      "required": [],
+      "props": {
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "3:2",
+            "2:3",
+            "21:9",
+            "9:21"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP"
+      ]
+    },
+    {
+      "id": "hfmcp:cinematic_studio_3_0",
+      "name": "Cinema Studio Video 3.0 · MCP",
+      "family": "Higgsfield",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "480p",
+            "720p",
+            "1080p",
+            "4k"
+          ]
+        },
+        "genre": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "action",
+            "horror",
+            "comedy",
+            "noir",
+            "drama",
+            "epic"
+          ]
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "default": false
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ]
+        }
+      },
+      "durations": {
+        "min": 4,
+        "max": 15
+      },
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:cinematic_studio_video",
+      "name": "Cinema Studio Video · MCP",
+      "family": "Higgsfield",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "slow_motion": {
+          "type": "boolean",
+          "default": false
+        },
+        "sound": {
+          "type": "boolean",
+          "default": true
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16"
+          ]
+        }
+      },
+      "durations": {
+        "values": [
+          5,
+          10
+        ]
+      },
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:cinematic_studio_video_v2",
+      "name": "Cinema Studio Video · MCP",
+      "family": "Higgsfield",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "genre": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "action",
+            "horror",
+            "comedy",
+            "western",
+            "suspense",
+            "intimate",
+            "spectacle"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "default": "std",
+          "enum": [
+            "pro",
+            "std"
+          ]
+        },
+        "sound": {
+          "type": "string",
+          "default": "on",
+          "enum": [
+            "on",
+            "off"
+          ]
+        },
+        "speedramp": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "custom",
+            "linear",
+            "slowmo",
+            "speedup",
+            "impact"
+          ]
+        },
+        "multi_shots": {
+          "type": "boolean",
+          "default": false
+        },
+        "multi_shot_mode": {
+          "type": "string",
+          "default": "custom",
+          "enum": [
+            "auto",
+            "custom"
+          ]
+        },
+        "cfg_scale": {
+          "type": "number",
+          "default": 0.5,
+          "minimum": 0,
+          "maximum": 1
+        },
+        "preset_id": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "1:1",
+            "4:3",
+            "3:4",
+            "16:9",
+            "9:16"
+          ]
+        }
+      },
+      "durations": {
+        "min": 3,
+        "max": 12
+      },
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:flux_3_video",
+      "name": "FLUX 3 Video · MCP",
+      "family": "Black Forest Labs",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 5,
+          "maximum": 20
+        },
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "720p",
+            "1080p",
+            "2k",
+            "4k"
+          ]
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "default": true
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "21:9",
+            "2:1",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:grok_video_v15",
+      "name": "Grok Video 1.5 · MCP",
+      "family": "xAI",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 2,
+          "maximum": 15
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": []
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:grok_video_v15_lite",
+      "name": "Grok Imagine Video 1.5 Lite · MCP",
+      "family": "xAI",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 15
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "1:1",
+            "3:2",
+            "2:3"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:minimax_hailuo",
+      "name": "Minimax Hailuo · MCP",
+      "family": "Hailuo",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "variant": {
+          "type": "string",
+          "default": "minimax-2.3",
+          "enum": [
+            "minimax",
+            "minimax-fast",
+            "minimax-2.3",
+            "minimax-2.3-fast"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "default": 6,
+          "enum": [
+            6,
+            10
+          ]
+        },
+        "resolution": {
+          "type": "string",
+          "default": "768",
+          "enum": [
+            "512",
+            "768",
+            "1080"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": []
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:minimax_h3",
+      "name": "MiniMax H3 · MCP",
+      "family": "MiniMax",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 4,
+          "maximum": 15
+        },
+        "resolution": {
+          "type": "string",
+          "default": "2K",
+          "enum": [
+            "2K"
+          ]
+        },
+        "batch_size": {
+          "type": "number",
+          "default": 1,
+          "minimum": 1,
+          "maximum": 4
+        },
+        "folder_id": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:minimax_h3_max",
+      "name": "MiniMax H3 Max · MCP",
+      "family": "MiniMax",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 5,
+          "maximum": 15
+        },
+        "resolution": {
+          "type": "string",
+          "default": "768p",
+          "enum": [
+            "480p",
+            "768p"
+          ]
+        },
+        "batch_size": {
+          "type": "number",
+          "default": 1,
+          "minimum": 1,
+          "maximum": 4
+        },
+        "folder_id": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:wan2_6",
+      "name": "Wan 2.6 Video · MCP",
+      "family": "Wan",
+      "kind": "video",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "quality": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "720p",
+            "1080p"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "enum": [
+            5,
+            10,
+            15
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:seedance_2_0",
+      "name": "Seedance 2.0 · MCP",
+      "family": "Seedance",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 4,
+          "maximum": 15
+        },
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "480p",
+            "720p",
+            "1080p",
+            "4k"
+          ]
+        },
+        "mode": {
+          "type": "string",
+          "default": "std",
+          "enum": [
+            "std",
+            "fast"
+          ]
+        },
+        "bitrate_mode": {
+          "type": "string",
+          "default": "standard",
+          "enum": [
+            "standard",
+            "high"
+          ]
+        },
+        "genre": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "action",
+            "horror",
+            "comedy",
+            "noir",
+            "drama",
+            "epic"
+          ]
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "default": true
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "1:1",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:seedance_2_0_mini",
+      "name": "Seedance 2.0 Mini · MCP",
+      "family": "Seedance",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 4,
+          "maximum": 15
+        },
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "480p",
+            "720p"
+          ]
+        },
+        "bitrate_mode": {
+          "type": "string",
+          "default": "standard",
+          "enum": [
+            "standard",
+            "high"
+          ]
+        },
+        "genre": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "action",
+            "horror",
+            "comedy",
+            "noir",
+            "drama",
+            "epic"
+          ]
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "default": true
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16",
+            "4:3",
+            "3:4",
+            "1:1",
+            "21:9"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:seedance_2_5",
+      "name": "Seedance 2.5 · MCP",
+      "family": "Seedance",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "mode": {
+          "type": "string",
+          "default": "t2v",
+          "enum": [
+            "t2v",
+            "omni_reference",
+            "video_edit",
+            "video_extension"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 4,
+          "maximum": 30
+        },
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "480p",
+            "720p",
+            "1080p",
+            "4k"
+          ]
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "default": true
+        },
+        "bitrate_mode": {
+          "type": "string",
+          "default": "standard",
+          "enum": [
+            "standard",
+            "high"
+          ]
+        },
+        "extension_mode": {
+          "type": "string",
+          "enum": [
+            "backward",
+            "forward"
+          ]
+        },
+        "draft": {
+          "type": "boolean",
+          "default": false
+        },
+        "draft_job_id": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:seedance_2_5_flash",
+      "name": "Seedance 2.5 Flash · MCP",
+      "family": "Seedance",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "mode": {
+          "type": "string",
+          "default": "t2v",
+          "enum": [
+            "t2v",
+            "omni_reference",
+            "video_edit",
+            "video_extension"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 4,
+          "maximum": 30
+        },
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "480p",
+            "720p"
+          ]
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "default": true
+        },
+        "bitrate_mode": {
+          "type": "string",
+          "default": "standard",
+          "enum": [
+            "standard",
+            "high"
+          ]
+        },
+        "extension_mode": {
+          "type": "string",
+          "enum": [
+            "backward",
+            "forward"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:cinematic_studio_video_4_0",
+      "name": "Cinema Studio 4.0 · MCP",
+      "family": "Higgsfield",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "mode": {
+          "type": "string",
+          "default": "t2v",
+          "enum": [
+            "t2v",
+            "omni_reference",
+            "video_edit",
+            "video_extension"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 4,
+          "maximum": 30
+        },
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ]
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "default": true
+        },
+        "bitrate_mode": {
+          "type": "string",
+          "default": "standard",
+          "enum": [
+            "standard",
+            "high"
+          ]
+        },
+        "extension_mode": {
+          "type": "string",
+          "enum": [
+            "backward",
+            "forward"
+          ]
+        },
+        "era_id": {
+          "type": "string"
+        },
+        "camera_model_id": {
+          "type": "string"
+        },
+        "camera_lens_id": {
+          "type": "string"
+        },
+        "camera_aperture_id": {
+          "type": "string"
+        },
+        "pacing_id": {
+          "type": "string"
+        },
+        "genre_id": {
+          "type": "string"
+        },
+        "light": {
+          "type": "string",
+          "enum": [
+            "preset",
+            "custom",
+            "user"
+          ]
+        },
+        "light_id": {
+          "type": "string"
+        },
+        "light_custom": {
+          "type": "string"
+        },
+        "color_palette": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:kling2_6",
+      "name": "Kling 2.6 Video · MCP",
+      "family": "Kling",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "enum": [
+            5,
+            10
+          ]
+        },
+        "sound": {
+          "type": "boolean",
+          "default": true
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:kling3_0",
+      "name": "Kling v3.0 · MCP",
+      "family": "Kling",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "mode": {
+          "type": "string",
+          "default": "std",
+          "enum": [
+            "std",
+            "pro",
+            "4k"
+          ]
+        },
+        "sound": {
+          "type": "string",
+          "default": "on",
+          "enum": [
+            "on",
+            "off"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:kling3_0_turbo",
+      "name": "Kling 3.0 Turbo · MCP",
+      "family": "Kling",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "720p",
+            "1080p"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:kling4_0",
+      "name": "Kling 4.0 · MCP",
+      "family": "Kling",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "mode": {
+          "type": "string",
+          "default": "text-to-video",
+          "enum": [
+            "text-to-video",
+            "image-to-video",
+            "reference-to-video",
+            "video-edit"
+          ]
+        },
+        "resolution": {
+          "type": "string",
+          "default": "1080p",
+          "enum": [
+            "720p",
+            "1080p"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "default": 10,
+          "minimum": 3,
+          "maximum": 30
+        },
+        "kling_element_ids": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "21:9",
+            "16:9",
+            "9:16",
+            "1:1"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:kling_4_0_flash",
+      "name": "Kling 4.0 Flash · MCP",
+      "family": "Kling",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "mode": {
+          "type": "string",
+          "default": "text-to-video",
+          "enum": [
+            "text-to-video",
+            "image-to-video",
+            "reference-to-video",
+            "video-edit"
+          ]
+        },
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "720p"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "default": 10,
+          "minimum": 3,
+          "maximum": 20
+        },
+        "kling_element_ids": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "21:9",
+            "16:9",
+            "9:16",
+            "1:1"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:kling_o3_image_reference",
+      "name": "Kling 3.0 Omni · MCP",
+      "family": "Kling",
+      "kind": "video",
+      "input": {
+        "field": "image_references",
+        "mode": "reference",
+        "max": 7
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "mode": {
+          "type": "string",
+          "default": "std",
+          "enum": [
+            "std",
+            "pro",
+            "4k"
+          ]
+        },
+        "sound": {
+          "type": "string",
+          "default": "on",
+          "enum": [
+            "on",
+            "off"
+          ]
+        },
+        "multi_shots": {
+          "type": "boolean",
+          "default": false
+        },
+        "multi_prompt": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:kling_o3_flf",
+      "name": "Kling 3.0 Omni (Frames) · MCP",
+      "family": "Kling",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "mode": {
+          "type": "string",
+          "default": "std",
+          "enum": [
+            "std",
+            "pro",
+            "4k"
+          ]
+        },
+        "sound": {
+          "type": "string",
+          "default": "on",
+          "enum": [
+            "on",
+            "off"
+          ]
+        },
+        "multi_shots": {
+          "type": "boolean",
+          "default": false
+        },
+        "multi_prompt": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:happy_horse_video",
+      "name": "Happy Horse Video · MCP",
+      "family": "Happy Horse",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "720p",
+            "1080p"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:grok_video",
+      "name": "Grok Video · MCP",
+      "family": "xAI",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 1,
+          "maximum": 15
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:gemini_omni_flash_1_1",
+      "name": "Gemini Omni Flash 1.1 · MCP",
+      "family": "Gemini",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "text-to-video",
+            "image-to-video",
+            "reference-to-video",
+            "edit"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "default": 8,
+          "minimum": 3,
+          "maximum": 10
+        },
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "360p",
+            "720p",
+            "1080p",
+            "4k"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:gemini_omni_flash_1_2",
+      "name": "Gemini Omni Flash 1.2 · MCP",
+      "family": "Gemini",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "text-to-video",
+            "image-to-video",
+            "reference-to-video",
+            "edit",
+            "extend"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "default": 8,
+          "minimum": 3,
+          "maximum": 15
+        },
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "360p",
+            "720p",
+            "1080p",
+            "4k"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:wan2_7",
+      "name": "Wan 2.7 · MCP",
+      "family": "Wan",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": 2,
+          "maximum": 15
+        },
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "720p",
+            "1080p"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:wan3_0",
+      "name": "Wan 3.0 · MCP",
+      "family": "Wan",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": -1,
+          "maximum": 30
+        },
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ]
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "default": true
+        },
+        "enable_thinking": {
+          "type": "boolean",
+          "default": false
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:wan3_0_prime",
+      "name": "Wan 3.0 Prime · MCP",
+      "family": "Wan",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 5,
+          "minimum": -1,
+          "maximum": 30
+        },
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ]
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "default": true
+        },
+        "enable_thinking": {
+          "type": "boolean",
+          "default": false
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16",
+            "1:1",
+            "4:3",
+            "3:4"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:veo3_1",
+      "name": "Google Veo 3.1 · MCP",
+      "family": "Gemini",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 8,
+          "enum": [
+            4,
+            6,
+            8
+          ]
+        },
+        "quality": {
+          "type": "string",
+          "default": "basic",
+          "enum": [
+            "basic",
+            "high",
+            "ultra"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "default": "veo-3-1-fast",
+          "enum": [
+            "veo-3-1-preview",
+            "veo-3-1-fast"
+          ]
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:veo3_1_lite",
+      "name": "Google Veo 3.1 Lite · MCP",
+      "family": "Gemini",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "duration": {
+          "type": "number",
+          "default": 8,
+          "enum": [
+            4,
+            6,
+            8
+          ]
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "default": false
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "16:9",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    },
+    {
+      "id": "hfmcp:cinematic_studio_video_3_5",
+      "name": "Cinematic Studio Video 3.5 · MCP",
+      "family": "",
+      "kind": "video",
+      "input": {
+        "field": "start_image",
+        "mode": "first-frame",
+        "max": 1
+      },
+      "required": [],
+      "props": {
+        "resolution": {
+          "type": "string",
+          "default": "720p",
+          "enum": [
+            "480p",
+            "720p",
+            "1080p"
+          ]
+        },
+        "duration": {
+          "type": "number",
+          "default": 15,
+          "minimum": 4
+        },
+        "genre": {
+          "type": "string",
+          "default": "auto",
+          "enum": [
+            "auto",
+            "action",
+            "horror",
+            "comedy",
+            "noir",
+            "drama",
+            "epic"
+          ]
+        },
+        "generate_audio": {
+          "type": "boolean",
+          "default": false
+        },
+        "enhance_prompt": {
+          "type": "boolean",
+          "default": false
+        },
+        "prompt_language": {
+          "type": "string",
+          "default": "zh",
+          "enum": [
+            "en",
+            "zh"
+          ]
+        },
+        "multi_shots": {
+          "type": "boolean",
+          "default": false
+        },
+        "multi_shot_mode": {
+          "type": "string",
+          "default": "custom",
+          "enum": [
+            "auto",
+            "custom"
+          ]
+        },
+        "multi_prompt": {
+          "type": "string"
+        },
+        "camera_style": {
+          "type": "string",
+          "enum": [
+            "classic_static",
+            "silent_machine",
+            "one_take",
+            "epic_scale",
+            "intimate_observer",
+            "impossible_camera",
+            "documentary_snap",
+            "raw_chaos",
+            "dreamy_flow"
+          ]
+        },
+        "light_scheme": {
+          "type": "string",
+          "enum": [
+            "soft_cross",
+            "contre_jour",
+            "overhead_fall",
+            "window",
+            "practicals",
+            "silhouette"
+          ]
+        },
+        "color_grading": {
+          "type": "string",
+          "enum": [
+            "naturalistic_clean",
+            "bleached_warm",
+            "hyper_neon",
+            "teal_orange_epic",
+            "sodium_decay",
+            "cold_steel",
+            "bleach_bypass",
+            "classic_bw"
+          ]
+        },
+        "style_prompt": {
+          "type": "string"
+        },
+        "prompt": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "aspect_ratio": {
+          "type": "string",
+          "enum": [
+            "21:9",
+            "16:9",
+            "4:3",
+            "1:1",
+            "3:4",
+            "9:16"
+          ]
+        }
+      },
+      "durations": null,
+      "tags": [
+        "Higgsfield MCP",
+        "Referensi"
+      ]
+    }
+  ]
+}
