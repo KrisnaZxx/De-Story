@@ -8,12 +8,12 @@ import tempfile
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 
 scratch = tempfile.TemporaryDirectory(prefix="de-story-session-check-")
 os.environ["FLOW2API_DATA_DIR"] = scratch.name
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "flow2api-src"))
-from src.services.managed_sessions import ManagedSessions, LoginRequired, checked_id, same_account
+from src.services.managed_sessions import ManagedSessions, LoginRequired, checked_id, same_account, chrome_path
 
 
 def account(number):
@@ -69,6 +69,53 @@ class SessionsTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(result["profiles"][0]["state"], "idle")
         self.assertIsNotNone(self.sessions.bound(1))
         browser.close.assert_awaited_once()
+
+    async def test_login_starts_regular_chrome_without_automation(self):
+        p = self.sessions.attach()
+        self.sessions._driver = AsyncMock(side_effect=AssertionError("Login must not connect automation"))
+        process = Mock()
+        process.poll.return_value = None
+        with patch('src.services.managed_sessions.chrome_path', return_value='regular-chrome') as executable, patch('src.services.managed_sessions.subprocess.Popen',return_value=process) as launch:
+            await self.sessions.open_login(self.manager,p['id'])
+        executable.assert_called_once_with(allow_bundled=False)
+        args = launch.call_args.args[0]
+        self.assertEqual(args[0],'regular-chrome')
+        self.assertIn('https://flow.google.com/projects',args)
+        self.assertFalse(any('debugging' in arg or 'headless' in arg or 'AutomationControlled' in arg for arg in args))
+        self.sessions._driver.assert_not_called()
+        await self.sessions.shutdown()
+        process.terminate.assert_not_called()
+
+    async def test_manual_login_does_not_fall_back_to_testing_browser(self):
+        bundled = Path(self.directory.name)/'bundled-chrome'
+        bundled.write_text('fixture')
+        with patch.dict(os.environ, {'BROWSER_EXECUTABLE_PATH':str(bundled)},clear=True), patch('src.services.managed_sessions.shutil.which',return_value=None), patch('src.services.managed_sessions.sys.platform','linux'):
+            self.assertEqual(chrome_path(),str(bundled))
+            self.assertIsNone(chrome_path(allow_bundled=False))
+
+    async def test_closing_manual_chrome_keeps_save_login_available(self):
+        p = self.sessions.attach(self.tokens[0])
+        self.sessions.changed(p,'login')
+        process = Mock()
+        process.poll.return_value = 0
+        self.sessions.running[p['id']] = {'manual':True,'process':process}
+        result = await self.sessions.snapshot(self.manager)
+        self.assertFalse(result['profiles'][0]['browserOpen'])
+        self.assertEqual(result['profiles'][0]['state'],'login')
+
+    async def test_save_waits_for_manual_login_window_to_close(self):
+        p = self.sessions.attach(self.tokens[0])
+        process = Mock()
+        process.poll.return_value = None
+        self.sessions.running[p['id']] = {'manual':True,'process':process}
+        self.sessions._read = AsyncMock()
+        with self.assertRaisesRegex(RuntimeError,'tutup jendela'):
+            await self.sessions.complete(self.manager,p['id'])
+        self.sessions._read.assert_not_called()
+        self.manager._save_refreshed_cookies.assert_not_called()
+        with self.assertRaises(RuntimeError):
+            await self.sessions.close(p['id'])
+        process.terminate.assert_not_called()
 
     async def test_open_login_is_not_disturbed_by_background_renewal(self):
         p = self.sessions.attach(self.tokens[0])

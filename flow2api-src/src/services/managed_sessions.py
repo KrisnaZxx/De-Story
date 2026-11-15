@@ -27,7 +27,7 @@ def same_account(expected, observed):
         raise LoginRequired("Login dengan akun Google yang sesuai profil ini.")
 
 
-def chrome_path():
+def chrome_path(allow_bundled=True):
     candidates = []
     if os.name == "nt":
         for env in ("PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA"):
@@ -39,7 +39,7 @@ def chrome_path():
         found = shutil.which(name)
         if found:
             candidates.append(Path(found))
-    if os.environ.get("BROWSER_EXECUTABLE_PATH"):
+    if allow_bundled and os.environ.get("BROWSER_EXECUTABLE_PATH"):
         candidates.append(Path(os.environ["BROWSER_EXECUTABLE_PATH"]))
     return next((str(p) for p in candidates if p.is_file()), None)
 
@@ -107,7 +107,10 @@ class ManagedSessions:
     async def snapshot(self, manager):
         self._load()
         for profile_id, runtime in list(self.running.items()):
-            if not runtime["browser"].is_connected():
+            if runtime.get("manual"):
+                if runtime["process"].poll() is not None:
+                    self.running.pop(profile_id)
+            elif not runtime["browser"].is_connected():
                 await self.close(profile_id)
                 if self.records[profile_id]["state"] == "login":
                     self.changed(self.records[profile_id], "idle")
@@ -138,7 +141,11 @@ class ManagedSessions:
     async def _browser(self, p, manager, visible):
         profile_id = p["id"]
         if profile_id in self.running:
-            if self.running[profile_id]["browser"].is_connected():
+            runtime = self.running[profile_id]
+            if runtime.get("manual"):
+                if runtime["process"].poll() is None:
+                    raise RuntimeError("Tutup jendela profil login Chrome terlebih dahulu, lalu klik Selesai login dan simpan.")
+            elif runtime["browser"].is_connected():
                 return self.running[profile_id]["context"]
             await self.close(profile_id)
         executable = chrome_path()
@@ -226,6 +233,12 @@ class ManagedSessions:
                 await page.close()
 
     async def close(self, profile_id):
+        runtime = self.running.get(profile_id)
+        if runtime and runtime.get("manual"):
+            if runtime["process"].poll() is None:
+                raise RuntimeError("Tutup jendela profil login Chrome melalui tombol X agar sesi tersimpan dengan baik.")
+            self.running.pop(profile_id)
+            return
         runtime = self.running.pop(profile_id, None)
         if runtime:
             try:
@@ -249,17 +262,24 @@ class ManagedSessions:
             raise RuntimeError("Profil sedang memperbarui sesi; tunggu sebentar.")
         self.busy.add(profile_id)
         try:
-            context = await self._browser(p, manager, True)
-            page = context.pages[0] if context.pages else await context.new_page()
-            await page.goto("https://flow.google.com/projects", wait_until="domcontentloaded", timeout=30000)
+            existing = self.running.get(profile_id)
+            if existing and existing.get("manual") and existing["process"].poll() is None:
+                return
+            await self.close(profile_id)
+            executable = chrome_path(allow_bundled=False)
+            if not executable:
+                raise RuntimeError("Pasang Google Chrome atau Chromium reguler untuk login manual. Browser bawaan generasi tidak dipakai untuk memasukkan akun Google.")
+            directory = self.root / checked_id(profile_id)
+            directory.mkdir(mode=0o700, exist_ok=True)
+            # Human sign-in runs without a debugging endpoint or automation connection.
+            args = [executable, f"--user-data-dir={directory}", "--no-first-run", "--no-default-browser-check",
+                    "--disable-background-mode", "--new-window", "https://flow.google.com/projects"]
+            process = subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                       stderr=subprocess.DEVNULL,
+                                       creationflags=subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0)
+            self.running[profile_id] = {"manual": True, "process": process}
+            p["seeded"] = True
             self.changed(p, "login")
-            instance = self.running[profile_id]
-            async def expire_login():
-                await asyncio.sleep(1200)
-                if self.running.get(profile_id) is instance and profile_id not in self.busy:
-                    await self.close(profile_id)
-                    self.changed(p, "idle", "Browser login ditutup setelah 20 menit. Buka profil untuk melanjutkan.")
-            self.schedule(expire_login())
         finally:
             self.busy.discard(profile_id)
 
@@ -267,9 +287,12 @@ class ManagedSessions:
         p = self.profile(profile_id)
         if profile_id in self.busy:
             raise RuntimeError("Profil sedang diproses.")
+        runtime = self.running.get(profile_id)
+        if runtime and runtime.get("manual") and runtime["process"].poll() is None:
+            raise RuntimeError("Setelah berhasil login Google Flow, tutup jendela profil Chrome melalui tombol X, lalu klik Selesai login dan simpan kembali.")
         self.busy.add(profile_id)
         try:
-            result = await self._read(p, manager, True)
+            result = await self._read(p, manager)
             token = await manager.db.get_token(p["tokenId"]) if p.get("tokenId") else await manager.db.get_token_by_email(result["email"])
             if token:
                 other = self.bound(token.id)
@@ -287,11 +310,11 @@ class ManagedSessions:
                 raise RuntimeError("Akun ini sudah mempunyai profil tersimpan. Gunakan profil akun yang sudah ada.")
             p["tokenId"], p["email"] = token.id, result["email"]
             self.changed(p, "ready")
-            await self.close(profile_id)
         except LoginRequired as exc:
             self.changed(p, "needs_login", str(exc))
             raise
         finally:
+            await self.close(profile_id)
             self.busy.discard(profile_id)
 
     async def refresh_bound(self, manager, token):
@@ -375,7 +398,10 @@ class ManagedSessions:
             task.cancel()
         await asyncio.gather(*list(self.tasks), return_exceptions=True)
         for profile_id in list(self.running):
-            await self.close(profile_id)
+            if self.running[profile_id].get("manual"):
+                self.running.pop(profile_id)  # A human-owned login window is closed by its user.
+            else:
+                await self.close(profile_id)
         if self.driver:
             await self.driver.stop()
 

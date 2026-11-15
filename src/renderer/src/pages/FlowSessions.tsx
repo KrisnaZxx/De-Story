@@ -16,7 +16,7 @@ export function FlowSessions({ready}: {ready:boolean}) {
     try{setState(await window.api.flow2api.sessionAction({action,profileId,...extra}))}catch(e){setError(errorText(e))}finally{setBusy('')}
   }
   return <section className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-5">
-    <div><h3 className="text-lg font-bold">Sesi login Flow</h3><p className="mt-1 text-sm text-ink-2">Simpan profil per akun, perbarui sesi, dan tangani hanya akun yang perlu login. Tidak menyimpan password Google.</p></div>
+    <div><h3 className="text-lg font-bold">Sesi login Flow</h3><p className="mt-1 text-sm text-ink-2">Login manual di Chrome biasa, tutup jendela profil setelah berhasil masuk Google Flow, lalu klik Selesai login dan simpan. Tidak menyimpan password Google.</p></div>
     {!ready && <p className="text-sm text-muted">Tunggu Flow2API internal siap untuk mengelola sesi.</p>}
     <div className="flex flex-wrap gap-2">
       <Button size="sm" disabled={!ready||!!busy} onClick={()=>void run('add')}>Tambah profil akun</Button>
@@ -38,7 +38,7 @@ export function FlowSessions({ready}: {ready:boolean}) {
         {p.error&&<p className="text-xs text-bad-ink">{p.error}</p>}
         <div className="flex flex-wrap gap-2">
           <Button size="sm" disabled={!!busy||p.busy} loading={busy===p.id} onClick={()=>void run('open',p.id)}>Buka profil / login</Button>
-          {p.browserOpen&&<><Button size="sm" variant="primary" disabled={!!busy||p.busy} onClick={()=>void run('complete',p.id)}>Selesai login dan simpan</Button><Button size="sm" disabled={!!busy||p.busy} onClick={()=>void run('close',p.id)}>Tutup browser</Button></>}
+          {(p.browserOpen||p.state==='login')&&<Button size="sm" variant="primary" disabled={!!busy||p.busy} onClick={()=>void run('complete',p.id)}>Selesai login dan simpan</Button>}
           <Button size="sm" disabled={!!busy||p.busy||p.browserOpen||!p.tokenId||p.state==='refreshing'} onClick={()=>void run('renew',p.id)}>Perbarui sesi</Button>
           <Button size="sm" variant="danger" disabled={!!busy||p.busy} onClick={async()=>{if(await confirmDialog({title:'Lepas profil akun?',body:'Tautan profil dilepas dari daftar ini. Akun Flow dan file profil browser tetap disimpan pada komputer.',confirm:'Lepas profil',danger:true}))void run('remove',p.id)}}>Lepas profil</Button>
         </div>
@@ -46,6 +46,6 @@ export function FlowSessions({ready}: {ready:boolean}) {
       {!state.profiles.length&&!state.accounts.length&&<p className="text-sm text-muted">Tambahkan profil akun, buka browser, login Google Flow, lalu klik Selesai login dan simpan.</p>}
     </>}
     {error&&<p role="alert" className="break-words text-sm text-bad-ink">{error}</p>}
-    <p className="text-xs leading-relaxed text-muted">Profil tersimpan meski browser ditutup. Penyegaran otomatis memakai sesi yang masih dapat diperbarui; Google tetap dapat meminta login/verifikasi. Browser login yang dibiarkan terbuka ditutup setelah 20 menit. Browser generasi dibersihkan setelah sekitar satu menit tidak aktif. Tidak perlu ekspor cookie berulang.</p>
+    <p className="text-xs leading-relaxed text-muted">Login memakai Chrome/Chromium reguler yang terpasang di komputer. Tutup hanya jendela profil login setelah selesai, agar sesi dapat dibaca aplikasi. Profil tetap tersimpan; Google tetap dapat meminta login/verifikasi. Browser generasi dibersihkan setelah sekitar satu menit tidak aktif. Tidak perlu ekspor cookie berulang.</p>
   </section>
 }
