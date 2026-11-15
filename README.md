@@ -53,8 +53,6 @@ Build pada Debian yang lebih baru tidak otomatis berjalan di Ubuntu lama. Untuk 
 
 ## Alur membuat video
 
-Template siap salin untuk meminta AI membantu satu video: [Prompt satu video](docs/PROMPT-SATU-VIDEO.md). Template mencakup naskah sampai pemeriksaan hasil ekspor.
-
 1. Klik Proyek baru, isi ide/ringkasan cerita.
 2. Pilih bahasa, durasi dari dropdown, rasio, gaya visual, penyedia TTS, dan suara. Dengarkan preview sebelum memilih suara.
 3. Pada Model AI, pilih model gambar dan model video. Penyedia gambar/video boleh berbeda.
