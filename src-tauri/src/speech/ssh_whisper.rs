@@ -2,7 +2,7 @@ use std::path::Path;
 use std::time::Duration;
 use serde_json::{json, Value};
 use tokio_util::sync::CancellationToken;
-use crate::media::ssh_export::{checked, command, quote, ssh, validate_profile};
+use crate::media::ssh_export::{checked, command_for, quote, ssh, validate_profile};
 use crate::paths::user_data_dir;
 
 const WORKER: &str = include_str!("ssh_whisper.py");
@@ -24,7 +24,7 @@ pub async fn install(profile: &str) -> Result<Value, String> {
     let source = folder.join("whisper.py");
     tokio::fs::write(&source, WORKER).await.map_err(|e| e.to_string())?;
     checked(ssh(profile, "mkdir -p .local/share/de-story-ssh .cache/de-story-whisper && chmod 700 .local/share/de-story-ssh .cache/de-story-whisper"), &token).await?;
-    let mut upload = command("scp");
+    let mut upload = command_for("scp",profile);
     upload.arg(&source).arg(format!("{profile}:{REMOTE_WORKER}"));
     checked(upload, &token).await?;
     tokio::time::timeout(Duration::from_secs(1800), checked(ssh(profile, &format!("python3 {REMOTE_WORKER} install")), &token))
@@ -45,7 +45,7 @@ pub async fn recognize(profile: &str, audio: &Path, language: &str, prompt: &str
         tokio::fs::write(stage.join("whisper.py"), WORKER).await.map_err(|e| e.to_string())?;
         let params = json!({"language":language,"prompt":prompt});
         tokio::fs::write(stage.join("params.json"), serde_json::to_vec(&params).map_err(|e| e.to_string())?).await.map_err(|e| e.to_string())?;
-        let mut upload = command("scp");
+        let mut upload = command_for("scp",profile);
         upload.arg("-r").arg(&stage).arg(format!("{profile}:.cache/de-story-whisper/"));
         checked(upload, token).await.map_err(|e| format!("Upload audio gagal. Periksa koneksi dan pemasangan Whisper VPS di Pengaturan: {e}"))?;
         let script = format!("cd {} && chmod 700 . && exec python3 whisper.py run", quote(&remote));

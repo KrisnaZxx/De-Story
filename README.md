@@ -13,6 +13,24 @@
 - Thumbnail YouTube otomatis khusus 16:9, memakai model gambar proyek; unduhan PNG terpisah dari video.
 - Ekspor FFmpeg lokal atau SSH/VPS, beberapa profil VPS, unduh/hapus hasil, dan informasi storage.
 - Windows desktop serta konfigurasi paket GUI Linux .deb/.AppImage.
+- Profil login Flow per akun dengan pembaruan sesi otomatis, riwayat/progres ekspor, serta deskripsi dan tag YouTube 16:9.
+- SSH melalui key/agent atau password yang disimpan terenkripsi pada komputer.
+
+## Cuplikan aplikasi
+
+Tampilan berikut memakai data demo, tanpa akun/kredensial pribadi.
+
+![Editor dengan preview dan timeline](docs/screenshots/editor.png)
+
+<details><summary>Sesi login Flow, riwayat ekspor, dan SSH password</summary>
+
+![Pengelolaan sesi Flow per akun](docs/screenshots/flow-sessions.png)
+
+![Riwayat dan progres ekspor](docs/screenshots/export-history.png)
+
+![Pengaturan SSH dengan password](docs/screenshots/ssh-password.png)
+
+</details>
 
 ## Instalasi
 
@@ -34,6 +52,8 @@ Ini aplikasi GUI. Installer Windows tidak dapat dijadikan paket Linux hanya deng
 Build pada Debian yang lebih baru tidak otomatis berjalan di Ubuntu lama. Untuk distribusi di atas, gunakan hasil workflow Ubuntu 22.04; lihat catatan rilis untuk status pengujian sebenarnya.
 
 ## Alur membuat video
+
+Template siap salin untuk meminta AI membantu satu video: [Prompt satu video](docs/PROMPT-SATU-VIDEO.md). Template mencakup naskah sampai pemeriksaan hasil ekspor.
 
 1. Klik Proyek baru, isi ide/ringkasan cerita.
 2. Pilih bahasa, durasi dari dropdown, rasio, gaya visual, penyedia TTS, dan suara. Dengarkan preview sebelum memilih suara.
@@ -60,13 +80,17 @@ Jika Susun naskah timeout, periksa model, koneksi, kuota, serta rincian error. C
 ### Google Flow / Flow2API
 
 1. Pilih Flow2API internal dan tunggu server siap. Buka panel admin; kredensial panel lokal dapat ditampilkan di pengaturan.
-2. Login Google Flow melalui browser. Tambahkan sesi/cookie sesuai format yang diminta panel lokal Flow2API → Token Management. Jangan membagikan cookie/sandi.
+2. Pada **Sesi login Flow**, klik **Tambah profil akun → Buka profil / login**. Login Google Flow pada browser yang terbuka, selesaikan verifikasi bila diminta, lalu kembali ke De Story dan klik **Selesai login dan simpan**. Tidak perlu memasukkan password Google ke aplikasi.
 3. Untuk extension worker, buka folder ekstensi melalui aplikasi dan pasang di Chrome. Isi alamat/kredensial worker dari pengaturan, simpan, pastikan Terhubung. Setelah pembaruan ekstensi, klik Reload pada chrome://extensions.
 4. Alternatif captcha browser lokal membuka Chrome for Testing. Browser diperlukan saat proses berjalan, dan dibersihkan sekitar satu menit setelah tidak digunakan. Browser bisa muncul lagi saat generate berikutnya.
-5. Tambahkan akun sah lainnya di Token Management untuk multiakun. Pilih Pengaturan multiakun Flow → jumlah akun atau Semua akun tersambung. Dropdown langsung tersimpan.
+5. Ulangi Tambah profil akun untuk akun lain. Pilih Pengaturan multiakun Flow → jumlah akun atau Semua akun tersambung. Dropdown langsung tersimpan. Akun yang sebelumnya diimpor lewat Token Management tetap didukung.
 6. Di proyek pilih model gambar/video Google Flow; penambahan akun saja belum mengganti model proyek.
 
-Banyak akun meningkatkan paralelisme hanya jika akun dan server tersedia. Sesi/cookie mengikuti ketentuan Google dan dapat kedaluwarsa/dicabut; aplikasi tidak bisa menjamin masa aktif lebih lama. Login ulang/perbarui sesi ketika autentikasi gagal. Status ekstensi Terhubung belum menjamin akun maupun captcha siap.
+Untuk akun lama, klik **Tautkan semua akun tersimpan** sekali. Aplikasi menyiapkan profil browser terpisah dan mencoba memakai cookie yang sudah tersedia. Akun dengan cookie kedaluwarsa mungkin masih memerlukan login awal pada profilnya.
+
+Aktifkan **Perbarui sesi otomatis** dan pilih interval, misalnya 30 menit. Aplikasi mencoba pembaruan melalui jaringan dahulu; bila perlu, memakai profil tersimpan satu per satu agar tidak membuka banyak browser. Browser ditutup setelah penyegaran; data login tetap tersimpan. Gunakan **Perbarui semua sesi** dan filter **Tampilkan hanya akun yang perlu tindakan** untuk banyak akun. Saat Google meminta verifikasi, cukup buka profil akun bermasalah dan simpan kembali sesinya. Browser login yang ditinggalkan ditutup setelah 20 menit.
+
+Banyak akun meningkatkan paralelisme hanya jika akun dan server tersedia. Sesi/cookie mengikuti ketentuan Google dan dapat kedaluwarsa/dicabut; aplikasi tidak bisa menjamin masa aktif tertentu. Pembaruan otomatis memerlukan De Story aktif dan komputer tidak sleep. OAuth Google biasa tidak menggantikan sesi login situs Flow. Status ekstensi Terhubung belum menjamin akun maupun captcha siap.
 
 Layanan captcha tim opsional memerlukan variabel lingkungan `FLOW2API_TEAM_CAPTCHA_CLIENT_KEY` milik operator, lalu restart aplikasi/server. Source publik tidak menyertakan kunci layanan tersebut. Mode captcha browser lokal dan ekstensi tetap tersedia.
 
@@ -127,16 +151,20 @@ Sesudah durasi berubah, periksa kembali posisi overlay/musik yang menggunakan wa
 
 ### Lokal
 
-Ekspor video → Lokal, lalu pilih resolusi, FPS, caption, SRT bila perlu, dan folder hasil. Folder bawaan hasil-story. FFmpeg menggabungkan media, transisi, audio, dan caption. Setelah selesai gunakan Ekspor ulang untuk versi baru; file sebelumnya tidak ditimpa otomatis.
+Ekspor video → Lokal, lalu pilih resolusi, FPS, caption, SRT bila perlu, dan folder hasil. Folder bawaan hasil-story. Klik **Mulai ekspor**: setelah job diterima, dialog pengaturan menutup otomatis. FFmpeg menggabungkan media, transisi, audio, dan caption di latar aplikasi.
+
+Buka **Riwayat ekspor** di bagian atas proyek untuk melihat antrean, persentase, status selesai/gagal, resolusi/FPS, tujuan lokal/VPS, serta folder hasil. Riwayat tetap tersimpan ketika proyek dibuka kembali. Satu proyek menjalankan satu ekspor pada satu waktu. Setelah selesai atau dibatalkan, gunakan **Ekspor ulang** untuk membuka pengaturan baru; file sebelumnya tidak ditimpa otomatis. Menutup dialog tidak membatalkan ekspor, tetapi menutup aplikasi/sleep dapat menghentikan proses.
 
 ### Beberapa VPS
 
 1. Pengaturan → Setting SSH → Tambah VPS.
-2. Isi alias unik, host, port, username, dan pilih private key lokal jika tidak memakai SSH agent. Simpan, ulangi untuk VPS lain.
+2. Isi alias unik, host, port, dan username. Pilih **SSH key / agent** (pilih private key lokal bila diperlukan) atau **Password akun VPS**, lalu isi password. Simpan, ulangi untuk VPS lain.
 3. Tentukan VPS bawaan ekspor dan VPS untuk Whisper. Pilihan Whisper kosong mengikuti VPS ekspor.
-4. Periksa SSH, kemudian Pasang kebutuhan VPS untuk FFmpeg/worker. Installer otomatis mendukung Debian/Ubuntu dengan sudo tanpa prompt.
+4. Periksa SSH, kemudian Pasang kebutuhan VPS untuk FFmpeg/worker. Installer otomatis mendukung Debian/Ubuntu sebagai root atau dengan sudo tanpa prompt. Password login SSH tidak otomatis menjawab prompt sudo/OTP.
 
 OpenSSH harus tersedia dan fingerprint host sudah dipercaya di komputer ini. Pada koneksi pertama, cocokkan fingerprint dengan penyedia VPS sebelum mempercayainya lewat SSH. Aplikasi memakai pemeriksaan host ketat. Private key tetap di komputer, tidak diunggah ke VPS.
+
+Password disimpan terenkripsi memakai DPAPI Windows atau keyring desktop Linux. Password tidak ditaruh pada konfigurasi SSH, argumen perintah, atau screenshot. Kolom kosong saat mengedit mempertahankan password tersimpan untuk tujuan yang sama; perubahan host, port, atau username memerlukan pengisian ulang. Jika keyring Linux terkunci/tidak tersedia, buka keyring dahulu. Server yang mewajibkan verifikasi tambahan tetap memerlukan alur verifikasi yang sesuai.
 
 ### Render / hasil VPS
 
@@ -150,6 +178,10 @@ Caption dibuat sebelum render; Whisper dan FFmpeg VPS tidak harus berjalan bersa
 ## Thumbnail YouTube
 
 Khusus proyek 16:9: Editor → Thumbnail otomatis, sebelum atau sesudah ekspor. AI memilih adegan dan teks singkat dari cerita, lalu model gambar proyek membuat thumbnail beserta teks. Unduh PNG 1280 × 720 terpisah; thumbnail tidak digabung ke MP4. Generasi ulang memakai kuota/kredit gambar. Periksa ejaan hasil AI sebelum publikasi. Proyek 9:16 tidak menampilkan fitur ini.
+
+## Deskripsi dan tag YouTube
+
+Khusus proyek 16:9: Editor → **Deskripsi & tag → Buat deskripsi dan tag**. Model AI naskah membuat deskripsi singkat dan tag dari judul, ringkasan, serta narasi video. Hasil tersimpan di proyek, bisa diedit dan disalin terpisah untuk YouTube; tidak dimasukkan ke MP4 dan tidak mengunggah video otomatis. Generate memakai kuota model naskah. Bila cerita berubah, buat ulang agar tetap sesuai. Fitur ini terpisah dari thumbnail dan ekspor.
 
 ## Data dan backup
 
@@ -189,6 +221,7 @@ Hasil paket ada di src-tauri/target/release/bundle kecuali CARGO_TARGET_DIR diub
 ```bash
 node scripts/editor-checks.mjs
 node scripts/vidgen-ui-checks.mjs
+python scripts/flow2api/sessions_test.py
 cargo test --lib --locked --manifest-path src-tauri/Cargo.toml
 ```
 

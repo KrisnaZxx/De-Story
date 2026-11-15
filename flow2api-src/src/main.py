@@ -25,7 +25,7 @@ from .services.token_manager import TokenManager
 from .services.load_balancer import LoadBalancer
 from .services.concurrency_manager import ConcurrencyManager
 from .services.generation_handler import GenerationHandler
-from .api import routes, admin
+from .api import routes, admin, studio_sessions
 
 
 _LOCAL_NO_PROXY_HOSTS = ("127.0.0.1", "localhost", "::1")
@@ -275,6 +275,8 @@ async def lifespan(app: FastAPI):
     except asyncio.CancelledError:
         pass
     await token_manager.stop_protocol_refresher()
+    from .services.managed_sessions import managed_sessions
+    await managed_sessions.shutdown()
     # Close browser if initialized
     if browser_service:
         await browser_service.close()
@@ -334,6 +336,7 @@ else:
 # Include routers
 app.include_router(routes.router)
 app.include_router(admin.router)
+app.include_router(studio_sessions.router)
 
 # Static files - serve tmp directory for cached files
 tmp_dir = paths.ensure_writable_dir(paths.tmp_dir())

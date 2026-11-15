@@ -70,6 +70,7 @@ pub fn run() {
             commands::vidgen_remove,
             commands::vidgen_check,
             commands::generate_thumbnail,
+            commands::youtube_metadata,
             commands::thumbnail_download,
             commands::projects_create,
             commands::projects_get,
@@ -144,6 +145,7 @@ pub fn run() {
             commands::flow2api_set_fixed_port,
             commands::flow2api_set_parallel_accounts,
             commands::flow2api_account_pool,
+            commands::flow2api_sessions,
             // app
             commands::app_copy_text,
             commands::app_open_external,

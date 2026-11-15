@@ -27,15 +27,49 @@ pub(crate) fn command(program: &str) -> Command {
     let mut cmd = Command::new(program);
     let config = user_data_dir().join("ssh/config");
     if config.exists() { cmd.arg("-F").arg(config); }
-    cmd.args(["-o", "BatchMode=yes", "-o", "ConnectTimeout=15", "-o", "StrictHostKeyChecking=yes", "-o", "LogLevel=ERROR"])
+    cmd.args(["-o", "ConnectTimeout=15", "-o", "StrictHostKeyChecking=yes", "-o", "LogLevel=ERROR"])
         .kill_on_drop(true).stdin(Stdio::null());
     #[cfg(windows)]
     cmd.creation_flags(0x08000000);
     cmd
 }
 
+pub(crate) fn command_for(program: &str, profile: &str) -> Command {
+    let mut cmd = command(program);
+    let password = std::fs::read_to_string(user_data_dir().join("ssh/password-profiles.json")).ok()
+        .and_then(|s| serde_json::from_str::<Vec<String>>(&s).ok()).is_some_and(|names| names.iter().any(|name| name == profile));
+    if password {
+        if let Ok(exe) = std::env::current_exe() {
+            cmd.env("SSH_ASKPASS",exe).env("SSH_ASKPASS_REQUIRE","force").env("DE_STORY_SSH_ASKPASS_PROFILE",profile)
+                .args(["-o","BatchMode=no","-o","NumberOfPasswordPrompts=1","-o","PubkeyAuthentication=no","-o","PreferredAuthentications=password,keyboard-interactive"]);
+        }
+    } else { cmd.args(["-o","BatchMode=yes"]); }
+    cmd
+}
+
+pub fn askpass_main() -> Option<i32> {
+    let profile = std::env::var("DE_STORY_SSH_ASKPASS_PROFILE").ok()?;
+    if validate_profile(&profile).is_err() { return Some(1); }
+    let prompt = std::env::args().nth(1).unwrap_or_default();
+    if !password_prompt(&prompt) { return Some(1); }
+    let result = (|| -> Result<(),String> {
+        let connection = rusqlite::Connection::open_with_flags(crate::paths::db_path(), rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).map_err(|e|e.to_string())?;
+        connection.busy_timeout(Duration::from_secs(5)).map_err(|e|e.to_string())?;
+        let secret = crate::db::repo::get_secret(&connection,&format!("ssh-password:{profile}")).ok_or("Sandi SSH tidak tersedia")?;
+        use std::io::Write;
+        let mut out = std::io::stdout().lock();
+        out.write_all(secret.as_bytes()).and_then(|_|out.write_all(b"\n")).and_then(|_|out.flush()).map_err(|e|e.to_string())
+    })();
+    Some(if result.is_ok() {0} else {1})
+}
+
+fn password_prompt(prompt: &str) -> bool {
+    let lower = prompt.trim().to_ascii_lowercase();
+    (lower.contains("password") || lower.contains("sandi")) && !lower.contains("passphrase") && !lower.contains("verification") && !lower.contains("one-time") && !lower.contains("otp")
+}
+
 pub(crate) fn ssh(profile: &str, remote_command: &str) -> Command {
-    let mut cmd = command("ssh");
+    let mut cmd = command_for("ssh",profile);
     cmd.args(["-o", "ServerAliveInterval=15", "-o", "ServerAliveCountMax=3", profile, remote_command]);
     cmd
 }
@@ -60,6 +94,29 @@ pub struct SshConnection {
     pub username: String,
     #[serde(default)]
     pub identity_file: String,
+    #[serde(default = "key_auth")]
+    pub auth_method: String,
+    #[serde(default)]
+    pub password_configured: bool,
+}
+fn key_auth() -> String { "key".into() }
+
+pub fn update_password(conn: &rusqlite::Connection, previous: Option<&SshConnection>, connection: &mut SshConnection, password: Option<&str>) -> Result<(),String> {
+    let secret_name = format!("ssh-password:{}",connection.profile);
+    let changed_host = previous.is_some_and(|old| old.host != connection.host || old.port != connection.port || old.username != connection.username);
+    if connection.auth_method == "key" {
+        crate::db::repo::clear_secret(conn,&secret_name)?;
+        connection.password_configured = false;
+        return Ok(());
+    }
+    if connection.auth_method != "password" { return Err("Metode autentikasi SSH tidak dikenal".into()); }
+    if let Some(password) = password.filter(|s|!s.is_empty()) {
+        if password.contains(['\n','\r','\0']) || password.len() > 4096 { return Err("Format sandi SSH tidak valid".into()); }
+        crate::db::repo::set_secret(conn,&secret_name,password)?;
+    } else if changed_host { return Err("Host, port, atau username berubah. Isi ulang sandi untuk tujuan SSH yang baru.".into()); }
+    connection.password_configured = crate::db::repo::get_secret(conn,&secret_name).is_some();
+    if !connection.password_configured { return Err("Isi sandi SSH untuk profil ini".into()); }
+    Ok(())
 }
 
 pub fn connections(settings: &Value) -> Vec<SshConnection> {
@@ -73,6 +130,7 @@ fn config_text(connections: &[SshConnection]) -> Result<String, String> {
     let mut names = std::collections::HashSet::new();
     for connection in connections {
         validate_profile(&connection.profile)?;
+        if !matches!(connection.auth_method.as_str(),"key"|"password") { return Err("Metode autentikasi SSH tidak dikenal".into()); }
         if !names.insert(&connection.profile) { return Err("Nama profil SSH harus unik".into()); }
         let host_ok = !connection.host.is_empty() && connection.host.len() <= 253
             && connection.host.as_bytes()[0].is_ascii_alphanumeric()
@@ -98,7 +156,9 @@ pub fn save_connections(connections: &[SshConnection]) -> Result<(), String> {
     std::fs::create_dir_all(&directory).map_err(|e| e.to_string())?;
     let temp = directory.join("config.new");
     std::fs::write(&temp, text).map_err(|e| e.to_string())?;
-    std::fs::rename(temp, directory.join("config")).map_err(|e| e.to_string())
+    std::fs::rename(temp, directory.join("config")).map_err(|e| e.to_string())?;
+    let names: Vec<&str> = connections.iter().filter(|c| c.auth_method == "password").map(|c|c.profile.as_str()).collect();
+    std::fs::write(directory.join("password-profiles.json"),serde_json::to_vec(&names).map_err(|e|e.to_string())?).map_err(|e| e.to_string())
 }
 
 pub async fn test_connection(profile: &str) -> Result<Value, String> {
@@ -112,14 +172,14 @@ pub async fn test_connection(profile: &str) -> Result<Value, String> {
 pub async fn install(profile: &str) -> Result<Value, String> {
     validate_profile(profile)?;
     let token = CancellationToken::new();
-    let install = "if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then sudo -n apt-get update && sudo -n apt-get install -y python3 ffmpeg; fi";
+    let install = "if ! command -v ffmpeg >/dev/null 2>&1 || ! command -v python3 >/dev/null 2>&1; then if [ $(id -u) = 0 ]; then apt-get update && apt-get install -y python3 ffmpeg; else sudo -n apt-get update && sudo -n apt-get install -y python3 ffmpeg; fi; fi";
     tokio::time::timeout(Duration::from_secs(600), checked(ssh(profile, install), &token)).await
         .map_err(|_| "Instalasi VPS melewati batas 10 menit")??;
     checked(ssh(profile, "mkdir -p .local/share/de-story-ssh .cache/de-story-render && chmod 700 .local/share/de-story-ssh .cache/de-story-render"), &token).await?;
     let source = user_data_dir().join("ssh/worker.py");
     if let Some(parent) = source.parent() { std::fs::create_dir_all(parent).map_err(|e| e.to_string())?; }
     std::fs::write(&source, WORKER).map_err(|e| e.to_string())?;
-    let mut cmd = command("scp");
+    let mut cmd = command_for("scp",profile);
     cmd.arg(source).arg(format!("{profile}:.local/share/de-story-ssh/worker.py"));
     checked(cmd, &token).await?;
     test_connection(profile).await
@@ -164,7 +224,7 @@ fn digest(path: &Path) -> Result<String, String> {
 async fn download_file(profile: &str, id: &str, destination: &Path, meta: &Value, token: &CancellationToken) -> Result<(), String> {
     validate_id(id)?;
     let partial = destination.with_extension(format!("{}.part", Uuid::new_v4()));
-    let mut cmd = command("scp");
+    let mut cmd = command_for("scp",profile);
     cmd.arg(format!("{profile}:.cache/de-story-render/{id}/result.mp4")).arg(&partial);
     let result = async {
         checked(cmd, token).await?;
@@ -256,7 +316,7 @@ impl SshExport {
         safe_filename(filename)?;
         let manifest = json!({"title":self.title,"filename":filename,"commands":self.commands});
         std::fs::write(self.stage.join("manifest.json"), serde_json::to_vec(&manifest).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
-        let mut upload = command("scp");
+        let mut upload = command_for("scp",&self.profile);
         upload.arg("-r").arg(&self.stage).arg(format!("{}:.cache/de-story-render/", self.profile));
         checked(upload, token).await?;
         Ok(ssh(&self.profile, &format!("cd {} && exec python3 worker.py run-plan", quote(&format!(".cache/de-story-render/{}", self.id)))))
@@ -282,10 +342,43 @@ mod tests {
     use super::*;
 
     #[test]
+    #[ignore = "writes a DPAPI-encrypted fixture for the loopback SSH password test"]
+    fn write_askpass_fixture() {
+        let directory = PathBuf::from(std::env::var_os("DE_STORY_SSH_FIXTURE_DIR").expect("fixture path"));
+        let workspace = PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().join(".toolchain").canonicalize().unwrap();
+        assert_eq!(directory.parent().unwrap().canonicalize().unwrap(),workspace);
+        assert!(directory.file_name().unwrap().to_string_lossy().starts_with("ssh-password-check-"));
+        std::fs::create_dir_all(&directory).unwrap();
+        let conn = rusqlite::Connection::open(directory.join("studio.db")).unwrap();
+        for migration in crate::db::MIGRATIONS { conn.execute_batch(migration).unwrap(); }
+        crate::db::repo::set_secret(&conn,"ssh-password:fixture-password","fixture password only").unwrap();
+    }
+
+    #[test]
+    fn password_is_encrypted_retained_only_for_same_host_and_removed_on_key_auth() {
+        let conn = rusqlite::Connection::open_in_memory().unwrap();
+        for migration in crate::db::MIGRATIONS { conn.execute_batch(migration).unwrap(); }
+        let mut connection = SshConnection {profile:"test-password".into(),host:"example.test".into(),port:22,username:"demo".into(),identity_file:"".into(),auth_method:"password".into(),password_configured:false};
+        update_password(&conn,None,&mut connection,Some("test password ; $(not-a-command)")).unwrap();
+        let bytes: Vec<u8> = conn.query_row("SELECT value FROM secrets WHERE provider='ssh-password:test-password'",[],|r|r.get(0)).unwrap();
+        assert!(!String::from_utf8_lossy(&bytes).contains("test password"));
+        assert!(connection.password_configured);
+        let previous = connection.clone();
+        update_password(&conn,Some(&previous),&mut connection,None).unwrap();
+        connection.host="different.test".into();
+        assert!(update_password(&conn,Some(&previous),&mut connection,None).is_err());
+        connection.auth_method="key".into();
+        update_password(&conn,Some(&previous),&mut connection,None).unwrap();
+        assert!(!connection.password_configured);
+        assert!(crate::db::repo::get_secret(&conn,"ssh-password:test-password").is_none());
+        assert!(!config_text(&[connection]).unwrap().contains("test password"));
+    }
+
+    #[test]
     fn profiles_migrate_preserve_all_hosts_and_reject_config_injection() {
         let old = json!({"sshConnection":{"profile":"old","host":"old.example","port":22,"username":"alice"}});
         let mut list = connections(&old);
-        list.push(SshConnection { profile:"second".into(),host:"two.example".into(),port:2222,username:"bob".into(),identity_file:"/home/bob/.ssh/key".into() });
+        list.push(SshConnection { profile:"second".into(),host:"two.example".into(),port:2222,username:"bob".into(),identity_file:"/home/bob/.ssh/key".into(),auth_method:"key".into(),password_configured:false });
         let config = config_text(&list).unwrap();
         assert!(config.contains("Host old\n") && config.contains("Host second\n"));
         assert_eq!(config.matches("HostName ").count(),2);
@@ -296,6 +389,10 @@ mod tests {
 
     #[test]
     fn profile_rejects_options_and_shell_syntax() {
+        assert!(password_prompt("alice@example password:"));
+        assert!(!password_prompt("Enter passphrase for key:"));
+        assert!(!password_prompt("OTP verification code:"));
+        assert!(!password_prompt("Are you sure you want to continue connecting?"));
         for invalid in ["", "-oProxyCommand=bad", "user@host", "host; rm", "two names", "../host"] { assert!(validate_profile(invalid).is_err()); }
         assert!(validate_profile("instabox-render").is_ok());
     }

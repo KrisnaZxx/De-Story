@@ -680,7 +680,7 @@ pub fn get_bundle(conn: &Connection, id: &str) -> Option<ProjectBundle> {
     }).ok()?.flatten().collect();
 
     let mut j_stmt = conn.prepare(
-        "SELECT * FROM jobs WHERE project_id = ? AND (status IN ('queued','running') OR updated_at > ?) ORDER BY created_at"
+        "SELECT * FROM jobs WHERE project_id = ? AND (kind = 'export' OR status IN ('queued','running') OR updated_at > ?) ORDER BY created_at"
     ).ok()?;
     let cutoff = chrono_now() - 10 * 60 * 1000;
     let jobs: Vec<Value> = j_stmt.query_map(params![id, cutoff], |row| {
@@ -1489,7 +1489,10 @@ pub fn active_project_job(conn: &Connection, project_id: &str, kind: &str) -> Op
 // ==========================================
 
 fn row_to_job(row: &rusqlite::Row) -> rusqlite::Result<Value> {
+    let kind: String = row.get("kind")?;
+    let export_options: Option<Value> = if kind == "export" { row.get::<_,String>("payload_json").ok().and_then(|s|serde_json::from_str(&s).ok()) } else {None};
     Ok(json!({
+        "exportOptions": export_options,
         "id": row.get::<_, String>("id")?,
         "projectId": row.get::<_, String>("project_id")?,
         "clipId": row.get::<_, Option<String>>("clip_id")?,
@@ -1535,6 +1538,19 @@ fn copy_dir_all(src: &std::path::Path, dst: &std::path::Path) {
 #[cfg(test)]
 mod edit_tests {
     use super::*;
+    #[test]
+    fn completed_export_history_survives_the_recent_job_cutoff() {
+        let conn = Connection::open_in_memory().unwrap();
+        for migration in crate::db::MIGRATIONS { conn.execute_batch(migration).unwrap(); }
+        conn.execute("INSERT INTO projects(id,title,created_at,updated_at) VALUES('history','Test',0,0)",[]).unwrap();
+        let export = insert_job(&conn,"history","export","ffmpeg",json!({"resolution":1080,"fps":30,"target":"local"}),None,None).unwrap();
+        let story = insert_job(&conn,"history","story","gemini",json!({}),None,None).unwrap();
+        conn.execute("UPDATE jobs SET status='done',created_at=0,updated_at=0",[]).unwrap();
+        let bundle = get_bundle(&conn,"history").unwrap();
+        assert!(bundle.jobs.iter().any(|j|j["id"]==export["id"] && j["exportOptions"]["resolution"]==1080));
+        assert!(!bundle.jobs.iter().any(|j|j["id"]==story["id"]));
+    }
+
     #[test]
     fn undo_restore_keeps_media_and_rejects_foreign_rows_and_assets() {
         let conn = Connection::open_in_memory().unwrap();

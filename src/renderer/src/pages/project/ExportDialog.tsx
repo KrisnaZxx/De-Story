@@ -24,7 +24,7 @@ function slug(s: string): string {
   )
 }
 
-export function ExportDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function ExportDialog({ open, onClose, onStarted }: { open: boolean; onClose: () => void; onStarted: () => void }) {
   const { project, clips, jobs, flush } = useProject()
   const { toast } = useApp()
   const [opts, setOpts] = useState<ExportOptions | null>(null)
@@ -80,6 +80,8 @@ export function ExportDialog({ open, onClose }: { open: boolean; onClose: () => 
       const j = await window.api.exporter.start(project.id, { ...opts, sshProfile: opts.sshProfile.trim() })
       useProject.getState().upsertJob(j)
       setJobId(j.id)
+      onClose()
+      onStarted()
     } catch (e) {
       toast('error', errorText(e))
     } finally { setStarting(false) }

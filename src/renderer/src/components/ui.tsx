@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type ReactNode } from 'react'
 import { Loader2, X } from 'lucide-react'
 import { create } from 'zustand'
 
@@ -218,6 +218,7 @@ export function Modal({
   children: ReactNode
   width?: number
 }) {
+  const titleId = useId()
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent): void => {
@@ -232,12 +233,13 @@ export function Modal({
       <div
         role="dialog"
         aria-modal="true"
+        aria-labelledby={titleId}
         className="scroll-thin flex max-h-full min-w-0 max-w-full flex-col gap-5 overflow-y-auto rounded-[20px] border-[1.5px] border-ink bg-surface p-7 shadow-[6px_6px_0_#1f1d1a] [&>*]:shrink-0"
         style={{ width, maxWidth: '100%' }}
       >
         <div className="flex items-start gap-3">
           <div className="flex-1">
-            <h2 className="font-display text-[26px] font-bold leading-tight">{title}</h2>
+            <h2 id={titleId} className="font-display text-[26px] font-bold leading-tight">{title}</h2>
             {subtitle && <p className="mt-1 text-sm text-ink-2">{subtitle}</p>}
           </div>
           <IconButton label="Tutup" onClick={onClose}>

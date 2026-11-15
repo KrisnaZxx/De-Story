@@ -777,6 +777,7 @@ pub fn start_export(
     else if !opts.target.is_empty() && opts.target != "local" { return Err("Tujuan ekspor tidak dikenal".into()); }
     let job = {
         let conn = db.lock().unwrap();
+        if let Some(active) = crate::db::repo::active_project_job(&conn, &project_id, "export") { return Ok(active); }
         insert_job(
             &conn,
             &project_id,

@@ -15,7 +15,10 @@ export type CaptionSize = 'kecil' | 'sedang' | 'besar'
 /** 1 idea, 2 script, 3 storyboard, 4 editor */
 export type Step = 1 | 2 | 3 | 4
 
+export interface YoutubeMetadata { description: string; tags: string[]; tagsText?: string; generatedAt: number }
+
 export interface EditorSettings {
+  youtubeMetadata?: YoutubeMetadata
   captionOffsetSec?: number
   captionAnchor?: { x: number; y: number } | null
   captionEdits?: Record<string, { audioAssetId: string; words: WordTiming[] }>
@@ -184,6 +187,7 @@ export type JobKind = 'story' | 'image' | 'sheet' | 'video' | 'tts' | 'narration
 export type JobStatus = 'queued' | 'running' | 'done' | 'failed' | 'canceled'
 
 export interface Job {
+  exportOptions?: ExportOptions | null
   id: string
   projectId: string
   clipId: string | null
@@ -394,6 +398,8 @@ export interface ModelList {
 }
 
 export interface SshConnection {
+  authMethod?: 'key' | 'password'
+  passwordConfigured?: boolean
   profile: string
   host: string
   port: number
@@ -446,4 +452,15 @@ export interface ClipPatchEvent {
 export interface CharacterPatchEvent {
   characterId: string
   patch: Partial<Character>
+}
+
+export interface FlowSessionProfile {
+  id: string; tokenId: number | null; email: string; state: string; lastSync: number | null; error: string; browserOpen: boolean; busy: boolean; active: boolean
+}
+export interface FlowSessionsState {
+  profiles: FlowSessionProfile[]
+  accounts: {tokenId:number;email:string;active:boolean;managed:boolean;lastSync:string|null}[]
+  autoRefresh:boolean
+  intervalMinutes:number
+  bulkRunning:boolean
 }

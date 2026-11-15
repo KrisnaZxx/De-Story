@@ -53,6 +53,7 @@ export interface StudioApi {
     duplicate(id: string): Promise<ProjectSummary>
   }
   story: {
+    youtubeMetadata(projectId: string): Promise<import('./types').YoutubeMetadata>
     /** Idea → scene-by-scene script (story and voice-over). */
     script(projectId: string): Promise<ProjectBundle>
     /** Script → one image plan per scene; "missing" skips scenes whose plan still matches their story. */
@@ -111,7 +112,7 @@ export interface StudioApi {
     list(source: ModelSource, refresh?: boolean): Promise<ModelList>
   }
   ssh: {
-    save(connection: SshConnection): Promise<AppSettings>
+    save(connection: SshConnection, password?: string): Promise<AppSettings>
     remove(profile: string): Promise<AppSettings>
     install(profile: string): Promise<SshStatus>
     results(profile: string): Promise<SshResults>
@@ -141,6 +142,8 @@ export interface StudioApi {
   }
   /** The bundled Flow2API backend: status, restart and the admin panel / extension credentials. */
   flow2api: {
+    sessions(): Promise<import('./types').FlowSessionsState>
+    sessionAction(action: Record<string, unknown>): Promise<import('./types').FlowSessionsState>
     status(): Promise<Flow2ApiStatus>
     restart(): Promise<Flow2ApiStatus>
     openFolder(): Promise<void>

@@ -7,6 +7,8 @@ import { errorText } from '../../lib/format'
 import { useApp } from '../../store/app'
 import { useProject } from '../../store/project'
 import { EditorStep } from './EditorStep'
+import { ExportHistory } from './ExportHistory'
+import { YoutubeDialog } from './YoutubeDialog'
 import { ExportDialog } from './ExportDialog'
 import { IdeaStep } from './IdeaStep'
 import { ProjectHeader } from './ProjectHeader'
@@ -17,6 +19,10 @@ import { ThumbnailDialog } from './ThumbnailDialog'
 export function ProjectPage({ id }: { id: string }) {
   const { load, unload, loaded, project, clips } = useProject()
   const { toast, go } = useApp()
+  const [historyOpen, setHistoryOpen] = useState(false)
+  const [youtubeOpen, setYoutubeOpen] = useState(false)
+  const jobs = useProject(s=>s.jobs)
+  const activeExports = Object.values(jobs).filter(j=>j.kind==='export' && j.projectId===id && (j.status==='queued'||j.status==='running'))
   const [exportOpen, setExportOpen] = useState(false)
   const [thumbnailOpen, setThumbnailOpen] = useState(false)
 
@@ -66,14 +72,16 @@ export function ProjectPage({ id }: { id: string }) {
       <ProjectHeader
         doneSteps={done}
         right={
-          project.step === 4 ? (
+          <>
+          <Button size="sm" onClick={()=>setHistoryOpen(true)}>Riwayat ekspor{activeExports.length ? ` · ${Math.round(activeExports[0].progress*100)}%` : ''}</Button>
+          {project.step === 4 && (
             <>
-            {project.aspectRatio === '16:9' && <Button onClick={() => setThumbnailOpen(true)}>Thumbnail otomatis</Button>}
-            <Button variant="primary" icon={<Download className="size-[18px]" />} onClick={() => setExportOpen(true)}>
+            {project.aspectRatio === '16:9' && <><Button size="sm" onClick={() => setThumbnailOpen(true)}>Thumbnail</Button><Button size="sm" onClick={() => setYoutubeOpen(true)}>Deskripsi &amp; tag</Button></>}
+            <Button variant="primary" icon={<Download className="size-[18px]" />} onClick={() => activeExports.length ? setHistoryOpen(true) : setExportOpen(true)}>
               Ekspor video
             </Button>
             </>
-          ) : undefined
+          )}</>
         }
       />
       <div className="min-h-0 flex-1">
@@ -82,7 +90,9 @@ export function ProjectPage({ id }: { id: string }) {
         {project.step === 3 && <StoryboardStep />}
         {project.step === 4 && <EditorStep />}
       </div>
-      <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} />
+      <ExportDialog open={exportOpen} onClose={() => setExportOpen(false)} onStarted={() => toast('success','Ekspor masuk antrean. Pantau melalui Riwayat ekspor.',{label:'Lihat progres',run:()=>setHistoryOpen(true)})} />
+      <ExportHistory open={historyOpen} onClose={()=>setHistoryOpen(false)} onExport={()=>{setHistoryOpen(false);setExportOpen(true)}} />
+      <YoutubeDialog open={youtubeOpen} onClose={()=>setYoutubeOpen(false)} />
       <ThumbnailDialog open={thumbnailOpen} onClose={() => setThumbnailOpen(false)} />
     </div>
   )

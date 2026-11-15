@@ -10,6 +10,7 @@ export function SshSettings({ settings, onSettings }: { settings: AppSettings; o
   const [form, setForm] = useState<SshConnection>(connections.find(c => c.profile === settings.exportSshProfile) ?? connections[0] ?? {
     profile: settings.exportSshProfile ?? 'instabox-render', host: '', port: 22, username: '', identityFile: ''
   })
+  const [password, setPassword] = useState('')
   const [status, setStatus] = useState<SshStatus | null>(null)
   const [listing, setListing] = useState<SshResults | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
@@ -18,7 +19,7 @@ export function SshSettings({ settings, onSettings }: { settings: AppSettings; o
   const [deleteAfter, setDeleteAfter] = useState(false)
   const [downloaded, setDownloaded] = useState<string | null>(null)
   const savedConnection = connections.find(c => c.profile === selected)
-  const saved = !!savedConnection && (['profile', 'host', 'port', 'username', 'identityFile'] as const).every((key) => form[key] === savedConnection[key])
+  const saved = !password && !!savedConnection && (['profile', 'host', 'port', 'username', 'identityFile', 'authMethod'] as const).every((key) => form[key] === savedConnection[key])
   const profile = selected
   const set = (patch: Partial<SshConnection>): void => { setForm({ ...form, ...patch }); setStatus(null) }
   const refresh = async (): Promise<void> => setListing(await window.api.ssh.results(profile))
@@ -52,9 +53,9 @@ export function SshSettings({ settings, onSettings }: { settings: AppSettings; o
       <section className="flex flex-col gap-4 rounded-2xl border border-line bg-surface p-6">
         <h2 className="text-lg font-bold">Profil VPS</h2>
         <div className="flex flex-wrap items-end gap-2">
-          <label className="min-w-0 flex-1 text-sm">Pilih VPS<select className={inputCls + ' mt-1'} value={selected} disabled={!!busy} onChange={ev => { const c = connections.find(c => c.profile === ev.target.value); setSelected(ev.target.value); if(c) setForm(c); setListing(null); setStatus(null) }}><option value="">Profil baru</option>{connections.map(c => <option key={c.profile} value={c.profile}>{c.profile} · {c.host}</option>)}</select></label>
-          <Button disabled={!!busy} onClick={() => { setSelected(''); setForm({ profile: '', host: '', username: '', port: 22, identityFile: '' }); setListing(null); setStatus(null) }}>Tambah VPS</Button>
-          <Button variant="danger" disabled={!!busy || !selected} onClick={() => void run('remove', async () => { if (!await confirmDialog({ title: 'Hapus profil SSH?', body: 'Hanya profil koneksi di aplikasi yang dihapus. File dan video di VPS tetap tersedia.', confirm: 'Hapus profil', danger: true })) return; const next = await window.api.ssh.remove(selected); onSettings(next); setSelected(''); setForm({profile:'',host:'',port:22,username:'',identityFile:''}); setListing(null); setStatus(null) })}>Hapus profil</Button>
+          <label className="min-w-0 flex-1 text-sm">Pilih VPS<select className={inputCls + ' mt-1'} value={selected} disabled={!!busy} onChange={ev => { const c = connections.find(c => c.profile === ev.target.value); setSelected(ev.target.value); setPassword(''); if(c) setForm(c); setListing(null); setStatus(null) }}><option value="">Profil baru</option>{connections.map(c => <option key={c.profile} value={c.profile}>{c.profile} · {c.host}</option>)}</select></label>
+          <Button disabled={!!busy} onClick={() => { setSelected(''); setPassword(''); setForm({ profile: '', host: '', username: '', port: 22, identityFile: '' }); setListing(null); setStatus(null) }}>Tambah VPS</Button>
+          <Button variant="danger" disabled={!!busy || !selected} onClick={() => void run('remove', async () => { if (!await confirmDialog({ title: 'Hapus profil SSH?', body: 'Hanya profil koneksi di aplikasi yang dihapus. File dan video di VPS tetap tersedia.', confirm: 'Hapus profil', danger: true })) return; const next = await window.api.ssh.remove(selected); onSettings(next); setSelected(''); setPassword(''); setForm({profile:'',host:'',port:22,username:'',identityFile:''}); setListing(null); setStatus(null) })}>Hapus profil</Button>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="VPS bawaan ekspor"><select className={inputCls} value={settings.exportSshProfile} disabled={!!busy} onChange={ev => void run('default', async () => onSettings(await window.api.settings.set({ exportSshProfile: ev.target.value })))}><option value="">Pilih VPS</option>{connections.map(c => <option key={c.profile}>{c.profile}</option>)}</select></Field>
@@ -66,18 +67,21 @@ export function SshSettings({ settings, onSettings }: { settings: AppSettings; o
           <Field label="Username SSH"><input className={inputCls} value={form.username} disabled={!!busy} onChange={(e) => set({ username: e.target.value })} /></Field>
           <Field label="Port SSH"><input type="number" min={1} max={65535} className={inputCls} value={form.port} disabled={!!busy} onChange={(e) => set({ port: Number(e.target.value) })} /></Field>
         </div>
-        <Field label="File private key di laptop (opsional bila memakai SSH agent)">
+        <Field label="Metode login SSH"><select className={inputCls} value={form.authMethod ?? 'key'} disabled={!!busy} onChange={e=>set({authMethod:e.target.value as 'key'|'password'})}><option value="key">SSH key / agent</option><option value="password">Password akun VPS</option></select></Field>
+        {form.authMethod === 'password' ? <Field label={form.passwordConfigured ? 'Password baru (kosongkan untuk mempertahankan sandi tersimpan)' : 'Password akun VPS'}><input type="password" autoComplete="new-password" className={inputCls} value={password} disabled={!!busy} onChange={e=>setPassword(e.target.value)} /><p className="text-xs text-muted">Sandi tersimpan terenkripsi pada komputer ini. Autentikasi SSH tetap memeriksa kunci host. OTP/verifikasi tambahan dan password sudo tidak diisi otomatis.</p></Field> : <Field label="File private key di laptop (opsional bila memakai SSH agent)">
           <div className="flex gap-2">
             <input className={cx(inputCls, 'min-w-0 flex-1')} value={form.identityFile} disabled={!!busy} onChange={(e) => set({ identityFile: e.target.value })} placeholder="~/.ssh/id_ed25519" />
             <Button disabled={!!busy} onClick={async () => { const path = await window.api.ssh.pickKey(); if (path) set({ identityFile: path }) }}>Pilih file</Button>
           </div>
-        </Field>
+        </Field>}
         <p className="text-sm text-ink-2">File private key dipakai oleh SSH di laptop. Aset media dan pengaturan render yang dikirim ke VPS.</p>
         <div className="flex flex-wrap gap-2">
           <Button variant="primary" loading={busy === 'save'} disabled={!!busy || saved} onClick={() => void run('save', async () => {
             const clean = { ...form, profile: form.profile.trim(), host: form.host.trim(), username: form.username.trim(), identityFile: form.identityFile.trim() }
-            onSettings(await window.api.ssh.save(clean))
-            setForm(clean)
+            const next = await window.api.ssh.save({...clean,authMethod:clean.authMethod ?? 'key'}, password || undefined)
+            onSettings(next)
+            setForm(next.sshConnections?.find(c=>c.profile===clean.profile) ?? clean)
+            setPassword('')
             setSelected(clean.profile)
             setListing(null)
             setMessage('Koneksi SSH tersimpan. Periksa koneksi atau pasang kebutuhan VPS.')

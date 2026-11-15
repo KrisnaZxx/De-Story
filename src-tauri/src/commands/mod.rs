@@ -47,6 +47,11 @@ pub fn projects_list(db: State<'_, DbPool>) -> Result<Vec<Value>, String> {
 }
 
 #[tauri::command]
+pub async fn youtube_metadata(db: State<'_,DbPool>, project_id: String) -> Result<Value,String> {
+    crate::services::youtube::generate(db.inner(), &project_id).await
+}
+
+#[tauri::command]
 pub fn generate_thumbnail(db: State<'_,DbPool>, jobs: State<'_,Arc<JobManager>>, app:AppHandle, project_id:String)->Result<Value,String>{
     generation::generate_thumbnail(db.inner().clone(),jobs.inner().clone(),app,project_id)
 }
@@ -385,6 +390,11 @@ pub async fn flow2api_set_parallel_accounts(
     crate::services::flow2api::account_pool(&info, Some(count)).await?;
     let conn = db.lock().unwrap();
     patch_settings(&conn, json!({ "flow2apiParallelAccounts": count }))
+}
+
+#[tauri::command]
+pub async fn flow2api_sessions(manager: State<'_,Arc<Flow2ApiManager>>, action: Option<Value>) -> Result<Value,String> {
+    crate::services::flow_sessions::request(&manager.panel_info()?,action).await
 }
 
 #[tauri::command]
@@ -1035,14 +1045,19 @@ pub async fn export_test_ssh(profile: String) -> Result<Value, String> {
 }
 
 #[tauri::command]
-pub fn ssh_save_connection(db: State<'_, DbPool>, connection: Option<crate::media::ssh_export::SshConnection>, remove: Option<String>) -> Result<Value, String> {
+pub fn ssh_save_connection(db: State<'_, DbPool>, connection: Option<crate::media::ssh_export::SshConnection>, remove: Option<String>, password: Option<String>) -> Result<Value, String> {
     let conn = db.lock().unwrap();
     let active: i64 = conn.query_row("SELECT COUNT(*) FROM jobs WHERE kind IN ('export','align','narration') AND status IN ('queued','running')", [], |r| r.get(0)).map_err(|e| e.to_string())?;
     if active > 0 { return Err("Tunggu ekspor, narasi, atau sinkronisasi caption selesai sebelum mengganti koneksi SSH".into()); }
     let settings = get_settings(&conn);
     let mut connections = crate::media::ssh_export::connections(&settings);
     if let Some(ref name) = remove { connections.retain(|c| &c.profile != name); }
-    if let Some(connection) = connection {
+    let transaction = conn.unchecked_transaction().map_err(|e|e.to_string())?;
+    if let Some(ref name) = remove { crate::db::repo::clear_secret(&transaction,&format!("ssh-password:{name}"))?; }
+    if let Some(mut connection) = connection {
+        if !matches!(connection.auth_method.as_str(),"key"|"password") { return Err("Metode autentikasi SSH tidak dikenal".into()); }
+        let previous = connections.iter().find(|c|c.profile == connection.profile);
+        crate::media::ssh_export::update_password(&transaction,previous,&mut connection,password.as_deref())?;
         connections.retain(|c| c.profile != connection.profile);
         connections.push(connection);
     }
@@ -1050,7 +1065,9 @@ pub fn ssh_save_connection(db: State<'_, DbPool>, connection: Option<crate::medi
     let default = if connections.iter().any(|c| c.profile == current) { current.to_string() } else { connections.first().map(|c| c.profile.clone()).unwrap_or_default() };
     crate::media::ssh_export::save_connections(&connections)?;
     let whisper = settings["whisperSshProfile"].as_str().filter(|name| connections.iter().any(|c| c.profile == *name)).unwrap_or(&default);
-    patch_settings(&conn, json!({ "sshConnections": connections, "sshConnection": null, "exportSshProfile": default, "whisperSshProfile": whisper }))
+    let result = patch_settings(&transaction, json!({ "sshConnections": connections, "sshConnection": null, "exportSshProfile": default, "whisperSshProfile": whisper }))?;
+    transaction.commit().map_err(|e|e.to_string())?;
+    Ok(result)
 }
 
 #[tauri::command]

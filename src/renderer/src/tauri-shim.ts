@@ -24,6 +24,7 @@ export const api: StudioApi = {
     duplicate: (id) => invoke('projects_duplicate', { id })
   },
   story: {
+    youtubeMetadata: (projectId) => invoke('youtube_metadata', { projectId }),
     script: (projectId) => invoke('story_script', { projectId }),
     visuals: (projectId, mode) => invoke('story_visuals', { projectId, mode }),
     musicPrompt: (projectId) => invoke('story_music_prompt', { projectId })
@@ -68,8 +69,8 @@ export const api: StudioApi = {
     list: (source, refresh) => invoke('models_list', { source, refresh })
   },
   ssh: {
-    remove: (profile) => invoke('ssh_save_connection', { connection: null, remove: profile }),
-    save: (connection) => invoke('ssh_save_connection', { connection, remove: null }),
+    remove: (profile) => invoke('ssh_save_connection', { connection: null, remove: profile, password: null }),
+    save: (connection, password) => invoke('ssh_save_connection', { connection, remove: null, password: password ?? null }),
     install: (profile) => invoke('ssh_install', { profile }),
     results: (profile) => invoke('ssh_results', { profile }),
     download: (profile, id, deleteAfter) => invoke('ssh_download_result', { profile, id, deleteAfter }),
@@ -97,6 +98,8 @@ export const api: StudioApi = {
     openFolder: () => invoke('whisper_open_folder')
   },
   flow2api: {
+    sessions: () => invoke('flow2api_sessions', { action: null }),
+    sessionAction: (action) => invoke('flow2api_sessions', { action }),
     status: () => invoke('flow2api_status'),
     restart: () => invoke('flow2api_restart'),
     openFolder: () => invoke('flow2api_log_folder'),

@@ -1018,6 +1018,13 @@ class TokenManager:
             raise ValueError("Flow 页面未返回已登录账号，请重新同步 Google Cookies")
         # Cookie 对应的真实账号与本地记录不一致时，以 Flow 页面为准自动更正邮箱。
         identity_changed = observed_email != expected_email
+        from .managed_sessions import managed_sessions, same_account
+        try:
+            profile = managed_sessions.bound(token_id)
+        except Exception:
+            profile = None
+        if profile:
+            same_account(profile.get("email") or expected_raw, observed_raw)
         if identity_changed:
             conflict = await self.db.get_token_by_email(observed_raw)
             if conflict is not None and conflict.id != token_id:
@@ -1067,6 +1074,11 @@ class TokenManager:
         self._mark_at_valid(token_id)
         self._last_at_refresh_error.pop(token_id, None)
         record_token_refresh("st", "success")
+        from .managed_sessions import managed_sessions
+        try:
+            managed_sessions.mark_refreshed(token_id)
+        except Exception:
+            debug_logger.log_warning("[COOKIE_REFRESH] Status profil tersimpan belum dapat diperbarui")
         debug_logger.log_info(f"[COOKIE_REFRESH] Token {token_id}: Cookie 刷新并验证成功")
         return new_st
 
@@ -1112,6 +1124,18 @@ class TokenManager:
         if not latest or latest.google_cookies != token.google_cookies:
             # A plugin or another request has supplied a newer Cookie jar.
             return None
+        from .managed_sessions import managed_sessions
+        try:
+            bound_profile = managed_sessions.bound(token_id)
+        except Exception:
+            bound_profile = None
+        if bound_profile:
+            try:
+                result = await managed_sessions.refresh_bound(self, latest)
+                return await self._save_refreshed_cookies(token_id, latest, result)
+            except Exception:
+                await self._record_cookie_refresh_failure(latest, "Profil tersimpan perlu diperiksa; buka pengaturan sesi Flow.")
+                return None
         if config.captcha_method not in {"personal", "browser"}:
             return None
         try:

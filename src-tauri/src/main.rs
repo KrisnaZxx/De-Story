@@ -2,5 +2,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
+    if let Some(code) = de_story::media::ssh_export::askpass_main() { std::process::exit(code); }
     de_story::run();
 }

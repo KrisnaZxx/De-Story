@@ -40,6 +40,7 @@ import { ModelPicker } from '../components/ModelPicker'
 import { ProviderLogo, type ProviderLogoId } from '../components/ProviderLogo'
 import { Select } from '../components/Select'
 import { WhisperSection } from './WhisperSection'
+import { FlowSessions } from './FlowSessions'
 import { VidgenSettings } from './VidgenSettings'
 import { SshSettings } from './SshSettings'
 import { Badge, Button, Field, IconButton, confirmDialog, cx, inputCls } from '../components/ui'
@@ -1144,6 +1145,7 @@ function Flow2ApiBackendStatus({ mode }: { mode: 'bundled' | 'external' }) {
           {status?.baseUrl ? ` · ${status.baseUrl}` : ''}
         </p>
       </div>
+      <FlowSessions ready={state === 'ready'} />
       <Flow2ApiPanelCard baseUrl={status?.baseUrl ?? null} ready={state === 'ready'} />
       <Flow2ApiExtensionCard ready={state === 'ready'} />
     </div>
@@ -1529,7 +1531,7 @@ export function Settings() {
               <section className="flex flex-col gap-3.5 rounded-2xl border border-line bg-surface p-6 text-[15px] leading-relaxed text-ink-2">
                 <div className="flex flex-col">
                   <h1 className="font-display text-[34px] font-bold tracking-[-0.015em] text-ink">De Story</h1>
-                  <span className="text-sm font-medium text-muted">v1.1.0 · by KrisnaZxx</span>
+                  <span className="text-sm font-medium text-muted">v1.2.0 · by KrisnaZxx</span>
                 </div>
                 <p>Versi 1.1.0. Semua proyek, gambar, video, dan suara disimpan di komputer ini.</p>
                 <p>
