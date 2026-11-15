@@ -277,6 +277,7 @@ class ManagedSessions:
                     raise RuntimeError("Akun ini sudah mempunyai profil tersimpan. Gunakan profil akun yang sudah ada.")
                 same_account(token.login_account or token.email, result["email"])
                 await manager._save_refreshed_cookies(token.id, token, result)
+                await manager.enable_token(token.id)
             else:
                 refresh = await manager.db.get_token_refresh_config()
                 token = await manager.add_token("", google_cookies=result["google_cookies"], login_account=result["email"], refresh_interval_minutes=refresh.refresh_interval_minutes)

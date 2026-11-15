@@ -30,7 +30,7 @@ class SessionsTests(unittest.IsolatedAsyncioTestCase):
             get_all_tokens=AsyncMock(return_value=self.tokens),
             get_token=AsyncMock(side_effect=lambda token_id: next(t for t in self.tokens if t.id == token_id)),
             get_token_refresh_config=AsyncMock(return_value=SimpleNamespace(enabled=True, refresh_interval_minutes=30))),
-            refresh_cookies=AsyncMock(return_value=True), _save_refreshed_cookies=AsyncMock())
+            refresh_cookies=AsyncMock(return_value=True), _save_refreshed_cookies=AsyncMock(), enable_token=AsyncMock())
 
     async def asyncTearDown(self):
         await self.sessions.shutdown()
@@ -85,7 +85,24 @@ class SessionsTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(LoginRequired):
             await self.sessions.complete(self.manager, p["id"])
         self.manager._save_refreshed_cookies.assert_not_called()
+        self.manager.enable_token.assert_not_called()
         self.assertNotEqual(p["state"], "ready")
+
+    async def test_expired_account_is_reenabled_only_after_successful_login(self):
+        token = self.tokens[0]
+        token.is_active = False
+        p = self.sessions.attach(token)
+        self.sessions._read = AsyncMock(return_value={"email":token.email,"google_cookies":"validated-test-cookie"})
+        self.sessions.close = AsyncMock()
+        await self.sessions.complete(self.manager,p["id"])
+        self.manager._save_refreshed_cookies.assert_awaited_once()
+        self.manager.enable_token.assert_awaited_once_with(token.id)
+        self.assertEqual(p["state"], "ready")
+        self.manager.enable_token.reset_mock()
+        self.manager._save_refreshed_cookies.side_effect = RuntimeError("Invalid refreshed credentials")
+        with self.assertRaises(RuntimeError):
+            await self.sessions.complete(self.manager,p["id"])
+        self.manager.enable_token.assert_not_called()
 
     async def test_bulk_keeps_processing_other_accounts_and_releases_busy_flag(self):
         self.sessions.renew = AsyncMock(side_effect=[RuntimeError("offline"), None])
