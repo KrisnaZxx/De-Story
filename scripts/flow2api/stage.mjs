@@ -49,6 +49,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { renameWithRetry } from './rename.mjs';
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, '..', '..');
@@ -313,7 +314,7 @@ async function download(url, destination) {
   const temporary = `${destination}.part`;
   const buffer = Buffer.from(await response.arrayBuffer());
   fs.writeFileSync(temporary, buffer);
-  fs.renameSync(temporary, destination);
+  await renameWithRetry(temporary, destination);
   return buffer.length;
 }
 
@@ -783,11 +784,11 @@ async function main() {
     // 6. publish
     if (fs.existsSync(publishedBackup)) fs.rmSync(publishedBackup, { recursive: true, force: true });
     const hadPrevious = fs.existsSync(outDir);
-    if (hadPrevious) fs.renameSync(outDir, publishedBackup);
+    if (hadPrevious) await renameWithRetry(outDir, publishedBackup);
     try {
-      fs.renameSync(stageDir, outDir);
+      await renameWithRetry(stageDir, outDir);
     } catch (error) {
-      if (hadPrevious && !fs.existsSync(outDir)) fs.renameSync(publishedBackup, outDir);
+      if (hadPrevious && !fs.existsSync(outDir)) await renameWithRetry(publishedBackup, outDir);
       throw error;
     }
     if (hadPrevious) fs.rmSync(publishedBackup, { recursive: true, force: true });
