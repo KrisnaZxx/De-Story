@@ -11,7 +11,7 @@ export function Toasts() {
           key={t.id}
           role={t.kind === 'error' ? 'alert' : 'status'}
           className={cx(
-            'pointer-events-auto flex items-start gap-3 rounded-2xl border-[1.5px] border-ink bg-surface px-4 py-3 shadow-ink-md',
+            'pointer-events-auto flex items-start gap-3 rounded-2xl border-[1.5px] border-line-2 bg-surface px-4 py-3 shadow-ink-md',
             t.kind === 'error' && 'bg-bad-soft'
           )}
         >
@@ -27,7 +27,7 @@ export function Toasts() {
             {t.action && (
               <button
                 type="button"
-                className="mt-1 block font-semibold text-accent-dark underline underline-offset-2"
+                className="mt-1 block font-semibold text-accent-ink underline underline-offset-2"
                 onClick={() => {
                   t.action!.run()
                   dismiss(t.id)

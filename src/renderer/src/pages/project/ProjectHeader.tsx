@@ -24,7 +24,7 @@ function SaveStatus() {
     )
   if (saveState === 'dirty')
     return (
-      <span className="flex items-center gap-1.5 text-xs text-accent-dark">
+      <span className="flex items-center gap-1.5 text-xs text-accent-ink">
         <span className="size-[7px] rounded-full bg-accent" />
         Ada perubahan belum disimpan
       </span>
@@ -99,7 +99,7 @@ export function ProjectHeader({ doneSteps, right }: { doneSteps: Step[]; right?:
                   if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
                   if (e.key === 'Escape') setEditing(false)
                 }}
-                className="h-8 w-[320px] rounded-lg border border-ink bg-surface px-2 font-display text-lg font-bold outline-none"
+                className="h-8 w-[320px] rounded-lg border border-line-2 bg-surface px-2 font-display text-lg font-bold outline-none"
               />
             ) : (
               <>
@@ -131,7 +131,7 @@ export function ProjectHeader({ doneSteps, right }: { doneSteps: Step[]; right?:
               onClick={() => setStep(s.n)}
               className={cx(
                 'inline-flex h-9 items-center gap-2 rounded-full py-0 pl-1.5 pr-4 text-sm',
-                active ? 'bg-ink font-semibold text-paper' : 'font-medium text-ink-2 hover:text-ink'
+                active ? 'bg-accent-soft font-semibold text-accent-ink' : 'font-medium text-ink-2 hover:text-ink'
               )}
             >
               <span

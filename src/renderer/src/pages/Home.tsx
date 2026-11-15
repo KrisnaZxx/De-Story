@@ -40,8 +40,8 @@ function joinList(items: string[]): string {
 }
 
 const ASPECTS: SelectOption<AspectRatio>[] = [
-  { value: '16:9', label: '16:9 · YouTube', icon: <span className="block h-[10px] w-[17px] rounded-[2px] border-[1.5px] border-ink" /> },
-  { value: '9:16', label: '9:16 · Shorts', icon: <span className="mx-[3px] block h-[16px] w-[10px] rounded-[2px] border-[1.5px] border-ink" /> }
+  { value: '16:9', label: '16:9 · YouTube', icon: <span className="block h-[10px] w-[17px] rounded-[2px] border-[1.5px] border-line-2" /> },
+  { value: '9:16', label: '9:16 · Shorts', icon: <span className="mx-[3px] block h-[16px] w-[10px] rounded-[2px] border-[1.5px] border-line-2" /> }
 ]
 
 export function Home() {
@@ -86,7 +86,7 @@ export function Home() {
 
   const ttsOptions = useMemo((): SelectOption<TtsProvider>[] => {
     const ready = ttsReadiness(keys)
-    return (['gemini', 'elevenlabs'] as const).map((p) => {
+    return (['gemini', 'elevenlabs', 'speko'] as const).map((p) => {
       const blocked = keys.length > 0 && !ready[p].ok
       return { value: p, label: TTS_NAMES[p], disabled: blocked, note: blocked ? `${ready[p].reason}. Atur di Pengaturan.` : undefined }
     })
@@ -108,7 +108,7 @@ export function Home() {
     else if (!appSettings.llmModels[llm]) issues.push({ what: `model ${llmName(llm)}`, blocks: 'cerita' })
     // Narration needs just one working voice service; every project can pick either one.
     const tts = ttsReadiness(keys)
-    if (!tts.gemini.ok && !tts.elevenlabs.ok) issues.push({ what: 'kunci Gemini atau ElevenLabs', blocks: 'suara narator' })
+    if (!tts.gemini.ok && !tts.elevenlabs.ok && !tts.speko.ok) issues.push({ what: 'kunci Gemini, ElevenLabs, atau Speko', blocks: 'suara narator' })
     return issues
   }, [keys, appSettings, mcpReady])
 
@@ -192,7 +192,7 @@ export function Home() {
               Tulis idenya. AI menyusun klip, naskah, dan suaranya, lalu kamu tinggal merapikan di editor.
             </p>
           </div>
-          <div className="flex flex-col gap-3 rounded-[18px] border-[1.5px] border-ink bg-surface py-5 pl-6 pr-5 shadow-ink-lg">
+          <div className="flex flex-col gap-3 rounded-[18px] border-[1.5px] border-line-2 bg-surface py-5 pl-6 pr-5 shadow-ink-lg">
             <label htmlFor="ide" className="text-[13px] font-semibold text-ink-2">
               Ide cerita atau sinopsis
             </label>
@@ -238,7 +238,7 @@ export function Home() {
                 key={s}
                 type="button"
                 onClick={() => setSynopsis(s)}
-                className="h-9 rounded-full border border-dashed border-line-3 px-3.5 text-[13px] text-ink-2 hover:border-ink-2 hover:text-ink"
+                className="h-9 rounded-full border border-dashed border-line-3 px-3.5 text-[13px] text-ink-2 hover:border-line-3 hover:text-ink"
               >
                 {s}
               </button>
@@ -266,9 +266,9 @@ export function Home() {
             <button
               type="button"
               onClick={() => void start()}
-              className="flex min-h-[262px] flex-col items-center justify-center gap-2.5 rounded-2xl border-[1.5px] border-dashed border-line-3 text-ink-2 hover:border-ink-2 hover:bg-surface"
+              className="flex min-h-[262px] flex-col items-center justify-center gap-2.5 rounded-2xl border-[1.5px] border-dashed border-line-3 text-ink-2 hover:border-line-3 hover:bg-surface"
             >
-              <span className="flex size-[54px] items-center justify-center rounded-full border-[1.5px] border-ink bg-accent text-white shadow-ink">
+              <span className="flex size-[54px] items-center justify-center rounded-full border-[1.5px] border-line-2 bg-accent text-white shadow-ink">
                 <Plus className="size-6" strokeWidth={2.2} />
               </span>
               <span className="text-base font-semibold text-ink">Proyek baru</span>
@@ -286,11 +286,11 @@ export function Home() {
                       ) : (
                         <StyleSwatch styleId={p.styleId} className="size-full" iconSize={40} />
                       )}
-                      <span className="absolute left-2.5 top-2.5 rounded-full border border-ink bg-surface px-2.5 py-[3px] text-xs font-semibold">
+                      <span className="absolute left-2.5 top-2.5 rounded-full border border-line-2 bg-surface px-2.5 py-[3px] text-xs font-semibold">
                         {getStyle(p.styleId).name}
                       </span>
                       {p.totalMs > 0 && (
-                        <span className="absolute bottom-2.5 right-2.5 rounded-md bg-ink px-2 py-[3px] font-mono text-xs text-paper">
+                        <span className="absolute bottom-2.5 right-2.5 rounded-md bg-accent-soft px-2 py-[3px] font-mono text-xs text-accent-ink">
                           {mmss(p.totalMs)}
                         </span>
                       )}

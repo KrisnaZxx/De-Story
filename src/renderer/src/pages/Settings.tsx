@@ -46,6 +46,7 @@ import { SshSettings } from './SshSettings'
 import { Badge, Button, Field, IconButton, confirmDialog, cx, inputCls } from '../components/ui'
 import { errorText, relativeTime } from '../lib/format'
 import { useModels } from '../lib/useModels'
+import { applyTheme } from '../lib/theme'
 import { useApp } from '../store/app'
 
 type Tab = 'services' | 'ssh' | 'general' | 'about'
@@ -99,7 +100,7 @@ function ProviderSelect<T extends string>({ value, options, onChange }: { value:
         aria-expanded={open}
         onClick={() => setOpen(!open)}
         className={cx(
-          'flex w-full items-center gap-3 rounded-2xl border-[1.5px] border-ink bg-surface px-4 py-3 text-left transition-shadow',
+          'flex w-full items-center gap-3 rounded-2xl border-[1.5px] border-line-2 bg-surface px-4 py-3 text-left transition-shadow',
           open ? 'shadow-none' : 'shadow-ink hover:shadow-ink-md'
         )}
       >
@@ -112,7 +113,7 @@ function ProviderSelect<T extends string>({ value, options, onChange }: { value:
         <ChevronDown className={cx('size-5 shrink-0 transition-transform', open && 'rotate-180')} />
       </button>
       {open && (
-        <div role="listbox" className="absolute inset-x-0 top-full z-40 mt-1.5 flex flex-col gap-0.5 rounded-2xl border-[1.5px] border-ink bg-surface p-1.5 shadow-ink-lg">
+        <div role="listbox" className="absolute inset-x-0 top-full z-40 mt-1.5 flex flex-col gap-0.5 rounded-2xl border-[1.5px] border-line-2 bg-surface p-1.5 shadow-ink-lg">
           {options.map((o) => {
             const on = o.id === value
             return (
@@ -408,7 +409,7 @@ function KeyForm({
           </>
         )}
       </div>
-      {unsaved && <p className="-mt-1 text-[13px] font-semibold text-accent-dark">Kunci belum tersimpan. Tekan Enter atau klik Simpan dan tes.</p>}
+      {unsaved && <p className="-mt-1 text-[13px] font-semibold text-accent-ink">Kunci belum tersimpan. Tekan Enter atau klik Simpan dan tes.</p>}
       {hint && <p className="-mt-1 text-[13px] text-ink-2">{hint}</p>}
       <div className="flex items-center gap-2 text-[13px] text-ink-2">
         <span className={cx('flex-1', configured && status?.lastOk === false && 'text-bad-ink')}>
@@ -420,7 +421,7 @@ function KeyForm({
           <button
             type="button"
             onClick={() => void window.api.app.openExternal(link)}
-            className="inline-flex shrink-0 items-center gap-1 font-semibold text-accent-dark hover:underline"
+            className="inline-flex shrink-0 items-center gap-1 font-semibold text-accent-ink hover:underline"
           >
             {linkLabel}
             <ExternalLink className="size-3.5" />
@@ -624,7 +625,7 @@ function GeminiKeyForm({
       </p>
       <div className="flex items-center gap-2 text-[13px] text-ink-2">
         <span className="flex-1">{configured && status?.lastMessage ? `${status.lastMessage}${status.checkedAt ? ` · dicek ${relativeTime(status.checkedAt)}` : ''}` : 'Kunci ini dipakai untuk Gemini LLM dan Gemini TTS.'}</span>
-        <button type="button" onClick={() => void window.api.app.openExternal(link)} className="inline-flex shrink-0 items-center gap-1 font-semibold text-accent-dark hover:underline">
+        <button type="button" onClick={() => void window.api.app.openExternal(link)} className="inline-flex shrink-0 items-center gap-1 font-semibold text-accent-ink hover:underline">
           {linkLabel}<ExternalLink className="size-3.5" />
         </button>
       </div>
@@ -752,11 +753,34 @@ function LlmSection({ settings, statusOf, onChanged, onSettings }: { settings: A
   )
 }
 
+function SpekoSection({ settings, status, onChanged, onSettings }: { settings: AppSettings; status?: KeyStatus; onChanged: () => void; onSettings: (s: AppSettings) => void }) {
+  const ready = !!status?.configured && status.lastOk !== false
+  const tts = useModels('speko-tts', ready)
+  const stt = useModels('speko-stt', ready)
+  return <>
+    <SectionTitle icon={<Mic className="size-5" />} title="Speko · suara dan caption" sub="Satu Router API key untuk dua jalur yang terpisah. Model mengikuti akses akun Anda." />
+    <Card>
+      <KeyForm provider="speko" name="Speko" status={status} help="Gunakan Router API key sk_speko_… dari dashboard Speko. Kunci disimpan terenkripsi di perangkat ini." link="https://speko.ai" linkLabel="Buka Speko" onChanged={onChanged} onSaved={(r) => { if (r.ok) { void tts.refresh(); void stt.refresh() } }} />
+      {ready && <>
+        <Field label="Model Speko TTS" hint="Hanya model streaming dengan waktu per kata. Pilih Speko TTS di Ide cerita untuk memakainya.">
+          <ModelPicker value={settings.spekoTtsModel} {...tts} onChange={async (id) => onSettings(await window.api.settings.set({ spekoTtsModel: id }))} onRefresh={() => void tts.refresh()} />
+        </Field>
+        <Field label="Model Speko STT" hint="Hanya model batch dengan timestamp kata. Untuk audio Gemini, pilih Speko STT di tab Caption.">
+          <ModelPicker value={settings.spekoSttModel} {...stt} onChange={async (id) => onSettings(await window.api.settings.set({ spekoSttModel: id }))} onRefresh={() => void stt.refresh()} />
+        </Field>
+        {!tts.loading && !tts.error && !tts.models.length && <p className="text-sm text-sun-ink">Akun ini belum menyediakan model TTS dengan waktu kata.</p>}
+        {!stt.loading && !stt.error && !stt.models.length && <p className="text-sm text-sun-ink">Akun ini belum menyediakan model STT dengan timestamp kata.</p>}
+      </>}
+      <p className="text-sm leading-relaxed text-ink-2">Speko TTS ditagih per karakter, STT per durasi audio. TTS Speko sudah membawa waktu kata sehingga tidak perlu STT tambahan. Audio Gemini + Speko STT memakai dua layanan; biaya mengikuti model masing-masing. Audio dikirim ke Speko saat sinkronisasi, termasuk saat dijalankan ulang.</p>
+    </Card>
+  </>
+}
+
 function TtsSection({ settings, statusOf, onChanged, onSettings }: { settings: AppSettings; statusOf: (p: ApiProvider) => KeyStatus | undefined; onChanged: () => void; onSettings: (s: AppSettings) => void }) {
   const provider = settings.defaultTtsProvider
   const status = statusOf(provider)
   const ready = !!status?.configured && status.lastOk !== false
-  const models = useModels(provider === 'gemini' ? 'gemini-tts' : 'elevenlabs', ready)
+  const models = useModels(provider === 'gemini' ? 'gemini-tts' : provider === 'speko' ? 'speko-tts' : 'elevenlabs', ready)
   const options: ProviderOption<TtsProvider>[] = [
     {
       id: 'gemini',
@@ -771,9 +795,10 @@ function TtsSection({ settings, statusOf, onChanged, onSettings }: { settings: A
       note: 'Suara sangat natural dengan waktu kata yang presisi untuk caption karaoke.',
       logo: 'elevenlabs',
       status: statusOf('elevenlabs')
-    }
+    },
+    { id: 'speko', name: 'Speko TTS', note: 'Model dengan waktu kata bawaan. Pilih model dari katalog akun Speko.', logo: 'speko', status: statusOf('speko') }
   ]
-  const value = provider === 'gemini' ? settings.geminiTtsModel : settings.elevenModel
+  const value = provider === 'gemini' ? settings.geminiTtsModel : provider === 'speko' ? settings.spekoTtsModel : settings.elevenModel
   return (
     <>
       <SectionTitle
@@ -793,12 +818,12 @@ function TtsSection({ settings, statusOf, onChanged, onSettings }: { settings: A
           />
         ) : (
           <KeyForm
-            provider="elevenlabs"
-            name="ElevenLabs"
+            provider={provider}
+            name={provider === 'speko' ? 'Speko' : 'ElevenLabs'}
             status={status}
-            help="Kunci API dari akun ElevenLabs."
-            link="https://elevenlabs.io/app/settings/api-keys"
-            linkLabel="Buat kunci di ElevenLabs"
+            help={provider === 'speko' ? 'Router API key Speko; dipakai bersama untuk TTS dan STT.' : 'Kunci API dari akun ElevenLabs.'}
+            link={provider === 'speko' ? 'https://speko.ai' : 'https://elevenlabs.io/app/settings/api-keys'}
+            linkLabel={provider === 'speko' ? 'Buka dashboard Speko' : 'Buat kunci di ElevenLabs'}
             onChanged={onChanged}
             onSaved={(r) => r.ok && void models.refresh()}
           />
@@ -812,7 +837,7 @@ function TtsSection({ settings, statusOf, onChanged, onSettings }: { settings: A
               loading={models.loading}
               error={models.error}
               fetchedAt={models.fetchedAt}
-              onChange={async (id) => onSettings(await window.api.settings.set(provider === 'gemini' ? { geminiTtsModel: id } : { elevenModel: id }))}
+              onChange={async (id) => onSettings(await window.api.settings.set(provider === 'gemini' ? { geminiTtsModel: id } : provider === 'speko' ? { spekoTtsModel: id } : { elevenModel: id }))}
               onRefresh={() => void models.refresh()}
             />
           </div>
@@ -872,7 +897,7 @@ function HiggsfieldMcpConnection() {
           <Button size="sm" variant="secondary" disabled={busy !== null} onClick={() => void run('disconnect')}>Putuskan akun MCP</Button>
         </>}
       </div>
-      {(error || status?.error) && <p role="alert" className="text-[13px] text-red-700">{error || status?.error}</p>}
+      {(error || status?.error) && <p role="alert" className="text-[13px] text-bad-ink">{error || status?.error}</p>}
       <p className="text-[13px] leading-relaxed text-ink-2">
         Login lewat halaman resmi Higgsfield di browser, lalu kembali ke sini. Pada proyek, buka <strong>Model AI</strong> dan pilih model berlabel <strong>· MCP</strong> atau filter <strong>Higgsfield MCP</strong>.
         {' '}Mode ini hanya memakai Unlimited; saat trial habis, generasi berhenti tanpa beralih ke kredit. Trial tidak diaktifkan otomatis oleh De Story.
@@ -971,7 +996,7 @@ function Flow2ApiSection({
                 href="https://github.com/TheSmallHanCat/flow2api"
                 target="_blank"
                 rel="noreferrer"
-                className="font-semibold text-accent-dark hover:underline"
+                className="font-semibold text-accent-ink hover:underline"
               >
                 TheSmallHanCat/flow2api
               </a>{' '}
@@ -1062,7 +1087,7 @@ function FlowParallelSettings({ settings, onSettings }: {
             }} />
         </Field>
         {saving && <p role="status" className="text-sm text-ink-2">Menyimpan pilihan…</p>}
-        {message && <p role="status" className={cx('text-sm', failed ? 'text-red-600' : 'text-ink-2')}>{message}</p>}
+        {message && <p role="status" className={cx('text-sm', failed ? 'text-bad-ink' : 'text-ink-2')}>{message}</p>}
         <p className="text-xs text-muted">Pilihan langsung tersimpan. Ubah setelah antrean Flow selesai; kecepatan mengikuti batas dan kredit tiap akun.</p>
       </div>}
     </div>
@@ -1401,7 +1426,7 @@ function Flow2ApiExtensionCard({ ready }: { ready: boolean }) {
 }
 
 export function Settings() {
-  const { go, route } = useApp()
+  const { go, route, toast } = useApp()
   const back = route.name === 'settings' && route.back ? route.back : ({ name: 'home' } as const)
   const [tab, setTab] = useState<Tab>('services')
   const [service, setService] = useState('llm')
@@ -1458,7 +1483,7 @@ export function Settings() {
               onClick={() => setTab(n.id)}
               className={cx(
                 'flex h-11 items-center gap-3 rounded-xl px-3.5 text-left text-[15px]',
-                tab === n.id ? 'bg-ink font-semibold text-paper' : 'font-medium text-ink hover:bg-sand'
+                tab === n.id ? 'bg-accent-soft font-semibold text-accent-ink' : 'font-medium text-ink hover:bg-sand'
               )}
             >
               {n.icon}
@@ -1478,13 +1503,14 @@ export function Settings() {
                   </p>
                 </div>
                 <nav aria-label="Pilih layanan API" className="flex flex-wrap gap-2 rounded-xl border border-line bg-surface p-2">
-                  {[['llm','Naskah'],['tts','Suara TTS'],['flow','Google Flow'],['higgsfield','Higgsfield'],['vidgen','Vidgen'],['whisper','Caption Whisper']].map(([id,label]) => <button key={id} type="button" aria-pressed={service === id} onClick={() => setService(id)} className={cx('rounded-lg px-3 py-2 text-sm font-semibold', service === id ? 'bg-ink text-paper' : 'hover:bg-sand')}>{label}</button>)}
+                  {[['llm','Naskah'],['tts','Suara TTS'],['flow','Google Flow'],['higgsfield','Higgsfield'],['vidgen','Vidgen'],['speko','Speko'],['whisper','Caption']].map(([id,label]) => <button key={id} type="button" aria-pressed={service === id} onClick={() => setService(id)} className={cx('rounded-lg px-3 py-2 text-sm font-semibold', service === id ? 'bg-accent-soft text-accent-ink' : 'hover:bg-sand')}>{label}</button>)}
                 </nav>
                 {service === 'llm' && <LlmSection settings={settings} statusOf={statusOf} onChanged={reload} onSettings={setSettings} />}
                 {service === 'tts' && <TtsSection settings={settings} statusOf={statusOf} onChanged={reload} onSettings={setSettings} />}
                 {service === 'higgsfield' && <HiggsfieldSection status={statusOf('higgsfield')} onChanged={reload} />}
                 {service === 'flow' && <Flow2ApiSection settings={settings} status={statusOf('flow2api')} onChanged={reload} onSettings={setSettings} />}
                 {service === 'vidgen' && <VidgenSettings settings={settings} onSettings={setSettings} />}
+                {service === 'speko' && <SpekoSection settings={settings} status={statusOf('speko')} onChanged={reload} onSettings={setSettings} />}
                 {service === 'whisper' && <WhisperSection settings={settings} onSettings={setSettings} />}
               </>
             )}
@@ -1497,6 +1523,9 @@ export function Settings() {
                   <p className="mt-2 text-[15px] text-ink-2">Pilihan bawaan untuk proyek baru.</p>
                 </div>
                 <section className="flex flex-col gap-5 rounded-2xl border border-line bg-surface p-6">
+                  <Field label="Tema aplikasi">
+                    <Select label="Tema aplikasi" value={settings.theme ?? 'dark'} options={[{ value: 'dark', label: 'Gelap · Graphite' }, { value: 'light', label: 'Terang · Pearl' }]} onChange={async (value) => { try { const next = await window.api.settings.set({ theme: value as AppSettings['theme'] }); applyTheme(next.theme); setSettings(next) } catch (e) { toast('error', errorText(e)) } }} className="max-w-[320px]" />
+                  </Field>
                   <Field label="Bahasa default naskah dan suara">
                     <Select
                       label="Bahasa default naskah dan suara"
@@ -1531,9 +1560,9 @@ export function Settings() {
               <section className="flex flex-col gap-3.5 rounded-2xl border border-line bg-surface p-6 text-[15px] leading-relaxed text-ink-2">
                 <div className="flex flex-col">
                   <h1 className="font-display text-[34px] font-bold tracking-[-0.015em] text-ink">De Story</h1>
-                  <span className="text-sm font-medium text-muted">v1.2.1 · by KrisnaZxx</span>
+                  <span className="text-sm font-medium text-muted">v1.3.0 · by KrisnaZxx</span>
                 </div>
-                <p>Versi 1.1.0. Semua proyek, gambar, video, dan suara disimpan di komputer ini.</p>
+                <p>Semua proyek, gambar, video, dan suara disimpan di komputer ini.</p>
                 <p>
                   Aplikasi ini menyertakan FFmpeg (lisensi GPL) untuk merender video, whisper.cpp (lisensi MIT) untuk menyamakan caption dengan suara,
                   dan font Poppins (SIL Open Font License) untuk caption. Model Whisper Small (lisensi MIT) diunduh terpisah. File lisensinya ikut

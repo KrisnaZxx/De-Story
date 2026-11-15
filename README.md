@@ -49,12 +49,21 @@ Ulangi untuk akun lain. Pada pengaturan multiakun, pilih jumlah akun atau **Semu
 
 Gemini TTS membuat suara. Whisper menentukan waktu kata untuk menyinkronkan caption dan membantu pembagian audio per adegan.
 
-Program Whisper ikut installer, tetapi **model Small ±488 MB diunduh sekali** melalui **Layanan AI dan kunci → Caption Whisper → Unduh model** untuk pemakaian lokal. Bisa juga dijalankan di VPS. Jika dimatikan, aplikasi memakai perkiraan timing. [Panduan caption dan audio](docs/PANDUAN.md#caption-klip-dan-editor).
+Program Whisper ikut installer, tetapi **model Small ±488 MB diunduh sekali** melalui **Layanan AI dan kunci → Caption → Unduh model** untuk pemakaian lokal. Bisa juga dijalankan di VPS. Jika dimatikan, aplikasi memakai perkiraan timing. [Panduan caption dan audio](docs/PANDUAN.md#caption-klip-dan-editor).
+
+### Speko untuk suara / caption
+
+1. **Layanan AI dan kunci → Speko:** isi Router API key, lalu pilih model TTS dan/atau STT dari katalog akun.
+2. **Gemini + Speko STT:** tetap pilih Gemini TTS di proyek; pada tab **Caption**, pilih **Speko STT** dan aktifkan **Sinkronkan otomatis**.
+3. **Speko TTS:** pilih Speko TTS di langkah **Ide cerita**. Waktu kata ikut hasil suara, tanpa Whisper atau STT tambahan.
+
+STT Speko memakai durasi audio, TTS memakai karakter. Sinkronisasi ulang memakai biaya STT lagi. [Pengaturan dan batas Speko](docs/PANDUAN.md#speko-tts-dan-stt).
 
 ## Fitur
 
+- Tema gelap Graphite dan terang Pearl, langsung diganti melalui **Pengaturan → Umum**.
 - Durasi hingga 30 menit; format YouTube 16:9 dan Shorts 9:16.
-- Naskah Gemini/OpenRouter/Groq/custom; suara Gemini/ElevenLabs.
+- Naskah Gemini/OpenRouter/Groq/custom; suara Gemini/ElevenLabs/Speko, serta Gemini + Speko STT.
 - Gambar/video Flow, Higgsfield API/MCP, dan Vidgen; multiakun Flow/Vidgen.
 - Caption yang bisa diedit/digeser, undo/redo, zoom dan geser timeline, serta preview fullscreen.
 - Thumbnail, deskripsi, dan tag otomatis untuk proyek 16:9.
@@ -96,7 +105,11 @@ Contoh tampilan memakai data demo.
 
 ![Editor dengan preview dan timeline](docs/screenshots/editor.png)
 
-<details><summary>Lihat sesi Flow, riwayat ekspor, dan pengaturan SSH</summary>
+<details><summary>Lihat tema terang, Speko, sesi Flow, riwayat ekspor, dan SSH</summary>
+
+![Editor tema terang](docs/screenshots/editor-light.png)
+
+![Pengaturan Speko TTS dan STT](docs/screenshots/speko-settings.png)
 
 ![Sesi login Flow](docs/screenshots/flow-sessions.png)
 

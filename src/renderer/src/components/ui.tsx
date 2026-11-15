@@ -12,12 +12,12 @@ type Size = 'sm' | 'md' | 'lg'
 
 const VARIANTS: Record<Variant, string> = {
   primary:
-    'bg-accent text-white border-[1.5px] border-ink shadow-ink hover:bg-accent-dark active:translate-x-px active:translate-y-px active:shadow-none font-semibold',
-  secondary: 'bg-surface text-ink border border-line-2 hover:border-ink-2 hover:bg-paper font-medium',
-  accent: 'bg-surface text-accent-dark border-[1.5px] border-accent hover:bg-accent-soft font-semibold',
+    'bg-accent text-white border border-accent shadow-ink hover:bg-accent-dark active:shadow-none font-semibold',
+  secondary: 'bg-surface text-ink border border-line-2 hover:border-line-3 hover:bg-paper font-medium',
+  accent: 'bg-surface text-accent-ink border-[1.5px] border-accent hover:bg-accent-soft font-semibold',
   ghost: 'bg-transparent text-ink-2 border border-transparent hover:bg-sand hover:text-ink font-medium',
   danger: 'bg-surface text-bad-ink border border-line-2 hover:border-bad-ink hover:bg-bad-soft font-medium',
-  ink: 'bg-ink text-paper border border-ink hover:bg-ink-2 font-semibold'
+  ink: 'bg-accent-soft text-accent-ink border border-accent/40 hover:bg-accent/20 font-semibold'
 }
 
 const SIZES: Record<Size, string> = {
@@ -68,7 +68,7 @@ export function IconButton({
       title={label}
       style={{ width: size, height: size }}
       className={cx(
-        'inline-flex shrink-0 items-center justify-center rounded-xl border border-line-2 bg-surface text-ink transition-colors hover:border-ink-2 hover:bg-paper disabled:opacity-40',
+        'inline-flex shrink-0 items-center justify-center rounded-xl border border-line-2 bg-surface text-ink transition-colors hover:border-line-3 hover:bg-paper disabled:opacity-40',
         className
       )}
       {...rest}
@@ -90,7 +90,7 @@ export function Chip({
       aria-pressed={on}
       className={cx(
         'inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-sm font-medium transition-colors',
-        on ? 'border-ink bg-ink text-paper' : 'border-line-2 bg-surface text-ink hover:border-ink-2',
+        on ? 'border-accent bg-accent-soft text-accent-ink' : 'border-line-2 bg-surface text-ink hover:border-line-3',
         className
       )}
       {...rest}
@@ -143,7 +143,7 @@ const TONES: Record<Tone, string> = {
   warn: 'bg-sun-soft text-sun-ink',
   ok: 'bg-ok-soft text-ok-ink',
   bad: 'bg-bad-soft text-bad-ink',
-  ink: 'bg-ink text-paper'
+  ink: 'bg-accent-soft text-accent-ink'
 }
 
 export function Badge({ tone = 'draft', children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
@@ -163,17 +163,17 @@ export function Switch({ on, onChange, label }: { on: boolean; onChange: (v: boo
       aria-label={label}
       onClick={() => onChange(!on)}
       className={cx(
-        'flex h-7 w-[46px] shrink-0 items-center rounded-full border-[1.5px] border-ink p-[3px] transition-colors',
+        'flex h-7 w-[46px] shrink-0 items-center rounded-full border border-line-2 p-[3px] transition-colors',
         on ? 'justify-end bg-accent' : 'justify-start bg-line'
       )}
     >
-      <span className="block size-[19px] rounded-full border-[1.5px] border-ink bg-white" />
+      <span className="block size-[19px] rounded-full border border-white/30 bg-white" />
     </button>
   )
 }
 
 export const inputCls =
-  'w-full rounded-xl border border-line-2 bg-surface px-3.5 text-[15px] text-ink outline-none transition-colors placeholder:text-muted/80 focus:border-ink'
+  'w-full rounded-xl border border-line-2 bg-surface px-3.5 text-[15px] text-ink outline-none transition-colors placeholder:text-muted/80 focus:border-line-2'
 
 export function Field({ label, hint, children, className }: { label: ReactNode; hint?: ReactNode; children: ReactNode; className?: string }) {
   return (
@@ -187,7 +187,7 @@ export function Field({ label, hint, children, className }: { label: ReactNode; 
 
 export function Progress({ value, className }: { value: number; className?: string }) {
   return (
-    <span className={cx('block h-2 overflow-hidden rounded-full bg-[#EFE9DF]', className)}>
+    <span className={cx('block h-2 overflow-hidden rounded-full bg-line', className)}>
       <span className="block h-full rounded-full bg-accent transition-[width] duration-300" style={{ width: `${Math.round(value * 100)}%` }} />
     </span>
   )
@@ -229,12 +229,12 @@ export function Modal({
   }, [open, onClose])
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/50 p-3 sm:p-6" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-3 sm:p-6" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="scroll-thin flex max-h-full min-w-0 max-w-full flex-col gap-5 overflow-y-auto rounded-[20px] border-[1.5px] border-ink bg-surface p-7 shadow-[6px_6px_0_#1f1d1a] [&>*]:shrink-0"
+        className="scroll-thin flex max-h-full min-w-0 max-w-full flex-col gap-5 overflow-y-auto rounded-[20px] border border-line-2 bg-surface p-7 shadow-ink-lg [&>*]:shrink-0"
         style={{ width, maxWidth: '100%' }}
       >
         <div className="flex items-start gap-3">

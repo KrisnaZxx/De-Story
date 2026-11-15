@@ -152,7 +152,7 @@ export function Select<T extends string | number>({
           variant === 'pill'
             ? 'inline-flex h-10 gap-2 rounded-full border bg-paper pl-3.5 pr-3 text-sm font-medium'
             : cx('w-full gap-2.5 rounded-xl border bg-surface px-3.5 text-ink', SIZES[size]),
-          open ? 'border-ink' : 'border-line-2 hover:border-ink-2',
+          open ? 'border-line-2' : 'border-line-2 hover:border-line-3',
           className
         )}
       >
@@ -167,7 +167,7 @@ export function Select<T extends string | number>({
       <Popover anchor={trigger} open={open} onClose={(why) => hide(why === 'escape')} width={menuWidth} align={align} maxHeight={search ? 420 : 360}>
         {search && (
           <div className="border-b border-line p-2">
-            <label className="flex h-9 items-center gap-2 rounded-xl border border-line-2 bg-paper px-3 focus-within:border-ink">
+            <label className="flex h-9 items-center gap-2 rounded-xl border border-line-2 bg-paper px-3 focus-within:border-line-2">
               <Search className="size-4 shrink-0 text-muted" />
               <input
                 autoFocus

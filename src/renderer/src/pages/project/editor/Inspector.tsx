@@ -51,7 +51,7 @@ function ClipTab({ clip, index }: { clip: Clip; index: number }) {
   return (
     <>
       <div className="flex h-14 items-center gap-2 border-b border-line px-[18px]">
-        <span className="rounded-md bg-ink px-[7px] py-0.5 font-mono text-xs text-paper">{clipNumber(index)}</span>
+        <span className="rounded-md bg-accent-soft px-[7px] py-0.5 font-mono text-xs text-accent-ink">{clipNumber(index)}</span>
         <span className="truncate text-[15px] font-semibold">{clip.title}</span>
         <span className="flex-1" />
         <span className="font-mono text-xs text-muted">{secLabel(clip.durationMs)}</span>
@@ -145,11 +145,18 @@ function CaptionTiming() {
   const { project, clips, assets, jobs, flush } = useProject()
   const { toast, go } = useApp()
   const [whisper, setWhisper] = useState<boolean | null>(null)
-  const [whisperTarget, setWhisperTarget] = useState<'local' | 'ssh'>('local')
+  const [whisperTarget, setWhisperTarget] = useState<'local' | 'ssh' | 'speko'>('local')
   useEffect(() => {
     let alive = true
     let remote = false
     void window.api.settings.get().then(async (s) => {
+      if (s.captionEngine === 'speko') {
+        remote = true
+        const keys = await window.api.settings.keys()
+        const key = keys.find((k) => k.provider === 'speko')
+        if (alive) { setWhisperTarget('speko'); setWhisper(!!key?.configured && key.lastOk !== false && !!s.spekoSttModel) }
+        return
+      }
       remote = s.whisperTarget === 'ssh'
       if (alive) setWhisperTarget(remote ? 'ssh' : 'local')
       const ready = remote ? (await window.api.whisper.remoteStatus()).ready : (await window.api.whisper.status()).state === 'ready'
@@ -175,6 +182,7 @@ function CaptionTiming() {
 
   return (
     <Section title="Waktu caption">
+      {whisperTarget === 'speko' && <p className="text-xs text-muted">Sinkronisasi ulang mengirim audio ke Speko dan ditagih per durasi.</p>}
       {whisper && voiced.length > 1 && !running && project.ttsProvider === 'gemini' && <Button size="sm" onClick={() => void sync(true)}>Perbaiki pembagian klip dari audio lama</Button>}
       {!voiced.length ? (
         <p className="text-[13px] text-ink-2">Caption muncul setelah suara narasi dibuat.</p>
@@ -185,15 +193,15 @@ function CaptionTiming() {
       ) : (
         <>
           <p className="text-[13px] leading-relaxed text-ink-2">
-            {estimated ? `${estimated} klip masih memakai waktu perkiraan.` : 'Caption sudah diberi waktu oleh Whisper.'} Jika belum tepat, sinkronkan ulang atau edit waktu di atas.
+            {estimated ? `${estimated} klip masih memakai waktu perkiraan.` : 'Caption sudah memiliki waktu kata dari audio.'} Jika belum tepat, sinkronkan ulang atau edit waktu di atas.
           </p>
           {whisper ? (
             <Button size="sm" className="self-start" icon={<AudioLines className="size-4" />} onClick={() => void sync()}>
-              Sinkronkan dengan Whisper {whisperTarget === 'ssh' ? 'VPS' : 'lokal'}
+              Sinkronkan dengan {whisperTarget === 'speko' ? 'Speko STT' : `Whisper ${whisperTarget === 'ssh' ? 'VPS' : 'lokal'}`}
             </Button>
           ) : (
             <p className="text-[13px] text-ink-2">
-              {whisperTarget === 'ssh' ? 'Siapkan atau periksa Whisper VPS di ' : 'Unduh model Whisper Small di '}
+              {whisperTarget === 'speko' ? 'Isi kunci dan pilih model Speko STT di ' : whisperTarget === 'ssh' ? 'Siapkan atau periksa Whisper VPS di ' : 'Unduh model Whisper Small di '}
               <button
                 type="button"
                 onClick={async () => {
@@ -204,7 +212,7 @@ function CaptionTiming() {
                     toast('error', errorText(e))
                   }
                 }}
-                className="font-semibold text-accent-dark hover:underline"
+                className="font-semibold text-accent-ink hover:underline"
               >
                 Pengaturan
               </button>{' '}
@@ -234,7 +242,7 @@ function Swatches({ value, colors, label, onChange }: { value: string | null; co
             aria-label={`${label} ${c}`}
             aria-pressed={on}
             onClick={() => onChange(c)}
-            className={cx('size-7 rounded-full border', on ? 'border-ink ring-2 ring-accent ring-offset-2 ring-offset-surface' : 'border-line-3')}
+            className={cx('size-7 rounded-full border', on ? 'border-line-2 ring-2 ring-accent ring-offset-2 ring-offset-surface' : 'border-line-3')}
             style={{ background: c }}
           />
         )
@@ -243,7 +251,7 @@ function Swatches({ value, colors, label, onChange }: { value: string | null; co
         title="Warna lain"
         className={cx(
           'relative size-7 cursor-pointer overflow-hidden rounded-full border',
-          custom ? 'border-ink ring-2 ring-accent ring-offset-2 ring-offset-surface' : 'border-line-3'
+          custom ? 'border-line-2 ring-2 ring-accent ring-offset-2 ring-offset-surface' : 'border-line-3'
         )}
         style={{ background: custom ? value! : 'conic-gradient(#e03131, #ffd43b, #51cf66, #22b8cf, #4c6ef5, #cc5de8, #e03131)' }}
       >
@@ -340,7 +348,7 @@ function CaptionTab() {
             return (
               <button key={s.id} type="button" aria-pressed={on} onClick={() => updateEditor({ captionStyle: s.id, captionColor: undefined, captionHighlight: undefined, captionBg: undefined })} className="flex flex-col gap-1 text-left">
                 <span
-                  className={cx('flex h-[52px] w-full items-center justify-center rounded-[10px] bg-[#E99A5B]', on ? 'border-2 border-accent' : 'border border-ink')}
+                  className={cx('flex h-[52px] w-full items-center justify-center rounded-[10px] bg-[#E99A5B]', on ? 'border-2 border-accent' : 'border border-line-2')}
                 >
                   <span
                     className="whitespace-nowrap rounded-md px-1.5 py-0.5 text-[12px]"
@@ -367,7 +375,7 @@ function CaptionTab() {
           onClick={() => updateEditor({ captionStyle: 'none' })}
           className={cx(
             'flex h-9 items-center justify-center gap-1.5 rounded-[10px] text-[13px] font-medium',
-            e.captionStyle === 'none' ? 'border-2 border-accent bg-accent-soft' : 'border border-line-2 hover:border-ink-2'
+            e.captionStyle === 'none' ? 'border-2 border-accent bg-accent-soft' : 'border border-line-2 hover:border-line-3'
           )}
         >
           <X className="size-3.5" />
@@ -394,7 +402,7 @@ function CaptionTab() {
           <span className="text-base font-semibold text-muted">A</span>
           <span className="w-12 text-right font-mono">{Math.round(captionScaleOf(e) * 100)}%</span>
         </label>
-        <button type="button" onClick={() => updateEditor({ captionScale: 1, captionSize: 'sedang' })} className="self-start text-xs font-semibold text-accent-dark hover:underline">
+        <button type="button" onClick={() => updateEditor({ captionScale: 1, captionSize: 'sedang' })} className="self-start text-xs font-semibold text-accent-ink hover:underline">
           Kembalikan ke 100%
         </button>
       </Section>
@@ -419,7 +427,7 @@ function PromptField({ label, hint, value, rows, onChange }: { label: string; hi
         <button
           type="button"
           onClick={() => void window.api.app.copyText(value).then(() => setCopied(true))}
-          className={cx('inline-flex h-7 items-center gap-1 rounded-lg px-2 text-xs font-semibold', copied ? 'text-ok-ink' : 'text-accent-dark hover:bg-accent-soft')}
+          className={cx('inline-flex h-7 items-center gap-1 rounded-lg px-2 text-xs font-semibold', copied ? 'text-ok-ink' : 'text-accent-ink hover:bg-accent-soft')}
         >
           {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
           {copied ? 'Tersalin' : 'Salin'}
@@ -485,7 +493,7 @@ function MusicPromptSection() {
                 key={s.name}
                 type="button"
                 onClick={() => void window.api.app.openExternal(s.url)}
-                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line-2 px-3 text-xs font-semibold text-ink-2 hover:border-ink-2 hover:text-ink"
+                className="inline-flex h-8 items-center gap-1.5 rounded-full border border-line-2 px-3 text-xs font-semibold text-ink-2 hover:border-line-3 hover:text-ink"
               >
                 Buka {s.name}
                 <ExternalLink className="size-3.5" />

@@ -93,7 +93,7 @@ function MotionPreview({ image, clip }: { image: Asset; clip: Clip }) {
         type="button"
         aria-pressed={playing}
         onClick={() => setPlaying(!playing)}
-        className="absolute right-2.5 top-2.5 inline-flex h-8 items-center gap-1.5 rounded-full bg-ink/80 px-3 text-xs font-medium text-paper hover:bg-ink"
+        className="absolute right-2.5 top-2.5 inline-flex h-8 items-center gap-1.5 rounded-full bg-black/80 px-3 text-xs font-medium text-white hover:bg-sand"
       >
         {playing ? <Pause className="size-3.5" /> : <Play className="size-3.5" />}
         {playing ? 'Jeda pratinjau' : 'Putar pratinjau'}
@@ -184,7 +184,7 @@ function ClipPanel({ clip, index, total }: { clip: Clip; index: number; total: n
 
       {/* The preview stays put while the settings below it scroll. */}
       <div className="flex shrink-0 justify-center border-b border-line px-4 py-2">
-        <div className={cx('relative overflow-hidden rounded-xl border-[1.5px] border-ink bg-paper', aspect)}>
+        <div className={cx('relative overflow-hidden rounded-xl border-[1.5px] border-line-2 bg-paper', aspect)}>
           {image && !isRunning(imageJob) && clip.motionType === 'camera' ? (
             <MotionPreview image={image} clip={clip} />
           ) : (
@@ -198,7 +198,7 @@ function ClipPanel({ clip, index, total }: { clip: Clip; index: number; total: n
             </div>
           )}
           {versions.length > 1 && (
-            <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-[10px] border border-ink bg-surface/95 p-1.5">
+            <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5 rounded-[10px] border border-line-2 bg-surface/95 p-1.5">
               {versions.slice(-5).map((v, i, arr) => (
                 <button
                   key={v.id}
@@ -276,7 +276,7 @@ function ClipPanel({ clip, index, total }: { clip: Clip; index: number; total: n
                     }
                     className={cx(
                       'inline-flex h-9 items-center gap-2 whitespace-nowrap rounded-full border py-0 pl-1 pr-3 text-base font-medium transition-colors',
-                      on ? 'border-ink bg-ink text-paper' : 'border-line-2 bg-surface text-ink hover:border-ink-2'
+                      on ? 'border-line-2 bg-accent-soft text-accent-ink' : 'border-line-2 bg-surface text-ink hover:border-line-3'
                     )}
                   >
                     <CharacterAvatar name={c.name} sheetUrl={sheet?.url} size={28} className={on ? 'border-paper/70' : undefined} />
@@ -321,7 +321,7 @@ function ClipPanel({ clip, index, total }: { clip: Clip; index: number; total: n
             {narration.running ? (
               <span className="text-base text-sun-ink">Suara narasi sedang dibuat…</span>
             ) : narrationChanged ? (
-              <span className="text-base text-accent-dark">
+              <span className="text-base text-accent-ink">
                 Naskah berubah.{' '}
                 <button type="button" onClick={() => void narration.start()} className="font-semibold underline">
                   Rekam ulang suara narasi
@@ -351,7 +351,7 @@ function ClipPanel({ clip, index, total }: { clip: Clip; index: number; total: n
                   onClick={() => updateClip(clip.id, { motionType: o.id })}
                   className={cx(
                     'flex min-h-20 items-center gap-3 rounded-xl px-4 py-3 text-left',
-                    on ? 'border-2 border-accent bg-accent-soft' : 'border border-line-2 bg-surface hover:border-ink-2'
+                    on ? 'border-2 border-accent bg-accent-soft' : 'border border-line-2 bg-surface hover:border-line-3'
                   )}
                 >
                   {o.icon}
@@ -404,7 +404,7 @@ function ClipPanel({ clip, index, total }: { clip: Clip; index: number; total: n
                   <button
                     type="button"
                     onClick={() => updateProject({ step: 1 })}
-                    className="shrink-0 font-semibold text-accent-dark hover:underline"
+                    className="shrink-0 font-semibold text-accent-ink hover:underline"
                   >
                     Ganti model
                   </button>
@@ -578,7 +578,7 @@ export function StoryboardStep() {
                 key={c.id}
                 type="button"
                 onClick={() => setOpenChar(c.id)}
-                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-line-2 bg-surface py-0 pl-1 pr-3 text-[13px] font-medium hover:border-ink-2"
+                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-line-2 bg-surface py-0 pl-1 pr-3 text-[13px] font-medium hover:border-line-3"
               >
                 <CharacterAvatar name={c.name} sheetUrl={sheet?.url} size={32} busy={running} />
                 {c.name}
@@ -589,7 +589,7 @@ export function StoryboardStep() {
           <button
             type="button"
             onClick={() => setOpenChar('new')}
-            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-dashed border-line-3 px-3.5 text-[13px] font-medium text-ink-2 hover:border-ink-2"
+            className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-dashed border-line-3 px-3.5 text-[13px] font-medium text-ink-2 hover:border-line-3"
           >
             <Plus className="size-[15px]" />
             Tambah pemeran
@@ -611,7 +611,7 @@ export function StoryboardStep() {
                 : 'Rekam ulang suara narasi'}
         </Button>
         <Button
-          size="sm" className="border-[1.5px] border-ink font-semibold"
+          size="sm" className="border-[1.5px] border-line-2 font-semibold"
           icon={<ImageIcon className="size-[17px]" />}
           disabled={!stats.needImg}
           onClick={() => void bulk(() => window.api.generate.missingImages(project.id))}
@@ -689,13 +689,13 @@ export function StoryboardStep() {
                       video={c.videoAssetId ? assets[c.videoAssetId] : null}
                       job={imageJob}
                     />
-                    <span className="absolute left-2 top-2 rounded-md bg-ink px-[7px] py-0.5 font-mono text-xs text-paper">{clipNumber(i)}</span>
+                    <span className="absolute left-2 top-2 rounded-md bg-accent-soft px-[7px] py-0.5 font-mono text-xs text-white">{clipNumber(i)}</span>
                     {c.motionType === 'video' && (
-                      <span className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-md bg-ink text-paper" title="Video AI">
+                      <span className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-md bg-accent-soft text-accent-ink" title="Video AI">
                         <Film className="size-3.5" />
                       </span>
                     )}
-                    <span className="absolute bottom-2 right-2 rounded-md border border-ink bg-surface px-[7px] py-px font-mono text-xs">
+                    <span className="absolute bottom-2 right-2 rounded-md border border-line-2 bg-surface px-[7px] py-px font-mono text-xs">
                       {mmss(c.durationMs)}
                     </span>
                   </div>

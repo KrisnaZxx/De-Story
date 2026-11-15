@@ -6,6 +6,7 @@ import { ProjectPage } from './pages/project/ProjectPage'
 import { Settings } from './pages/Settings'
 import { useApp } from './store/app'
 import { useProject } from './store/project'
+import { applyTheme } from './lib/theme'
 
 const KIND_LABEL: Record<string, string> = {
   thumbnail: 'Thumbnail',
@@ -18,6 +19,8 @@ const KIND_LABEL: Record<string, string> = {
 
 export function App() {
   const route = useApp((s) => s.route)
+
+  useEffect(() => { void window.api.settings.get().then((s) => applyTheme(s.theme)).catch(() => {}) }, [])
 
   useEffect(() => {
     const p = useProject.getState

@@ -58,7 +58,7 @@ export function EditorStep() {
                 onClick={() => setTab(t.id)}
                 className={cx(
                   'flex h-[62px] w-[56px] flex-col items-center justify-center gap-1 rounded-xl text-xs',
-                  on ? 'border-[1.5px] border-ink bg-sun-soft font-semibold text-ink' : 'font-medium text-ink-2 hover:bg-sand'
+                  on ? 'border-[1.5px] border-line-2 bg-sun-soft font-semibold text-ink' : 'font-medium text-ink-2 hover:bg-sand'
                 )}
               >
                 <Icon className="size-5" />

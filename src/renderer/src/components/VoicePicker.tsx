@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Play, Square } from 'lucide-react'
 import type { TtsProvider, VoiceOption } from '@shared/types'
 import { Select } from './Select'
-import { cx } from './ui'
+import { cx, inputCls } from './ui'
 import { errorText } from '../lib/format'
 import { geminiPreview } from '../lib/voicePreviews'
 
@@ -43,7 +43,7 @@ export function VoicePicker({ provider, value, onChange }: { provider: TtsProvid
         // Gemini samples ship with the app; ElevenLabs sends its own preview links.
         const v = provider === 'gemini' ? list.map((x) => ({ ...x, previewUrl: x.previewUrl ?? geminiPreview(x.id, x.name) })) : list
         setVoices(v)
-        if (!v.some((x) => x.id === value) && v[0]) onChange(v[0].id)
+        if (provider !== 'speko' && !v.some((x) => x.id === value) && v[0]) onChange(v[0].id)
       })
       .catch((e) => { if (alive) setError(errorText(e)) })
     return () => { alive = false }
@@ -65,13 +65,15 @@ export function VoicePicker({ provider, value, onChange }: { provider: TtsProvid
         className={cx(
           'flex shrink-0 items-center justify-center rounded-full border transition-colors',
           size === 'row' ? 'size-7' : 'size-12 rounded-xl',
-          on ? 'border-accent bg-accent text-white' : 'border-line-2 bg-surface text-ink hover:border-ink-2'
+          on ? 'border-accent bg-accent text-white' : 'border-line-2 bg-surface text-ink hover:border-line-3'
         )}
       >
         {on ? <Square className="size-3.5" fill="currentColor" /> : <Play className="ml-px size-3.5" fill="currentColor" />}
       </button>
     )
   }
+
+  if (provider === 'speko') return <div className="flex min-w-[220px] flex-1 flex-col gap-1"><input aria-label="Voice ID Speko (opsional)" className={cx(inputCls, 'h-12')} value={value === 'auto' ? '' : value} onChange={(e) => onChange(e.target.value)} placeholder="Suara otomatis · voice ID opsional" /><span className="text-xs text-muted">Kosongkan untuk suara bawaan sesuai bahasa. Voice ID mengikuti model yang dipilih.</span></div>
 
   if (error) return <p className="flex h-12 flex-1 items-center rounded-xl bg-bad-soft px-3.5 text-[13px] text-bad-ink">{error}</p>
   return (

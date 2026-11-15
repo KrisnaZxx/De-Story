@@ -18,7 +18,7 @@ function Playhead({ pps }: { pps: number }) {
   const t = usePlayback((s) => s.t)
   return (
     <div className="pointer-events-none absolute bottom-0 top-0 z-10 w-0.5 bg-accent" style={{ left: t * pps }}>
-      <span className="absolute -left-[6px] -top-0.5 size-3.5 rounded-[3px] border-[1.5px] border-ink bg-accent" />
+      <span className="absolute -left-[6px] -top-0.5 size-3.5 rounded-[3px] border-[1.5px] border-line-2 bg-accent" />
     </div>
   )
 }
@@ -77,7 +77,7 @@ const Tracks = memo(function Tracks({
             aria-pressed={it.clip.id === selectedId}
             className={cx(
               'absolute top-0 flex h-16 flex-col justify-between overflow-hidden rounded-lg bg-sand bg-cover bg-center p-1.5 text-left',
-              it.clip.id === selectedId ? 'border-2 border-accent' : 'border border-ink'
+              it.clip.id === selectedId ? 'border-2 border-accent' : 'border border-line-2'
             )}
             style={{
               left: it.start * pps + 1,
@@ -86,9 +86,9 @@ const Tracks = memo(function Tracks({
             }}
           >
             <span className="flex items-center gap-1 self-start">
-              <span className="rounded-[5px] border border-ink bg-surface px-1 font-mono text-[11px]">{String(it.index + 1).padStart(2, '0')}</span>
+              <span className="rounded-[5px] border border-line-2 bg-surface px-1 font-mono text-[11px]">{String(it.index + 1).padStart(2, '0')}</span>
               {it.clip.motionType === 'video' && it.video && (
-                <span className="flex size-[18px] items-center justify-center rounded-[5px] bg-ink text-paper">
+                <span className="flex size-[18px] items-center justify-center rounded-[5px] bg-accent-soft text-accent-ink">
                   <Film className="size-3" />
                 </span>
               )}
@@ -137,7 +137,7 @@ const Tracks = memo(function Tracks({
           it.audio ? (
             <span
               key={it.audio.id}
-              className="absolute top-0 flex h-10 items-center overflow-hidden rounded-md border border-line-2 bg-[#EFEAE2] px-1"
+              className="absolute top-0 flex h-10 items-center overflow-hidden rounded-md border border-line-2 bg-sand px-1"
               style={{ left: it.start * pps + 1, width: Math.max(4, ((it.audio.durationMs ?? 0) / 1000) * pps - 2) }}
             >
               <Waveform url={it.audio.url} className="h-8 w-full" />
@@ -173,7 +173,7 @@ const Tracks = memo(function Tracks({
               title={label}
               className={cx(
                 'absolute top-0 flex h-[30px] items-center gap-1.5 overflow-hidden whitespace-nowrap rounded-md px-2 text-xs font-medium',
-                o.kind === 'image' ? 'bg-info-soft text-info-ink' : 'bg-accent-soft text-accent-dark',
+                o.kind === 'image' ? 'bg-info-soft text-info-ink' : 'bg-accent-soft text-accent-ink',
                 on ? 'z-[1] border-2 border-accent' : 'border border-line-3'
               )}
               style={{ left: start * pps + 1, width: Math.max(10, (end - start) * pps - 2) }}

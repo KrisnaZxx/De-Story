@@ -194,7 +194,7 @@ export function ExportDialog({ open, onClose, onStarted }: { open: boolean; onCl
                       type="button"
                       aria-pressed={on}
                       onClick={() => set({ resolution: r.id })}
-                      className={cx('flex h-14 flex-col items-center justify-center rounded-xl', on ? 'border-2 border-accent bg-accent-soft' : 'border border-line-2 hover:border-ink-2')}
+                      className={cx('flex h-14 flex-col items-center justify-center rounded-xl', on ? 'border-2 border-accent bg-accent-soft' : 'border border-line-2 hover:border-line-3')}
                     >
                       <span className="text-[15px] font-semibold">{r.label}</span>
                       <span className="text-xs text-ink-2">{r.sub}</span>
@@ -214,7 +214,7 @@ export function ExportDialog({ open, onClose, onStarted }: { open: boolean; onCl
                     onClick={() => set({ fps: f })}
                     className={cx(
                       'h-14 rounded-xl text-[15px] font-semibold',
-                      opts.fps === f ? 'border-2 border-accent bg-accent-soft' : 'border border-line-2 hover:border-ink-2'
+                      opts.fps === f ? 'border-2 border-accent bg-accent-soft' : 'border border-line-2 hover:border-line-3'
                     )}
                   >
                     {f} fps

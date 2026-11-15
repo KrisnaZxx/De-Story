@@ -18,7 +18,7 @@ use crate::services::audio::probe_duration_ms;
 use crate::services::{elevenlabs, gemini};
 use crate::speech::align::{spoken_words, strip_voice_tags, WordTiming};
 use crate::speech::cuts::{choose_cuts, SilenceInterval};
-use crate::speech::whisper::{time_script, WhisperExecution};
+use crate::speech::captions::{time_script, CaptionExecution};
 
 const GEMINI_PART_SEC: f64 = 240.0;
 const ELEVEN_PART_CHARS: usize = 2400;
@@ -88,6 +88,7 @@ fn estimate_narration_ms(narration: &str) -> i64 {
 }
 
 fn group_clips(clips: &[ClipRow], provider: &str) -> Vec<Vec<ClipRow>> {
+    if provider == "speko" { return clips.iter().map(|c| vec![c.clone()]).collect(); }
     let mut out = Vec::new();
     let mut cur = Vec::new();
     let mut size: f64 = 0.0;
@@ -162,7 +163,7 @@ fn estimate_word_timings(text: &str, duration_sec: f64) -> Vec<WordTiming> {
 }
 
 async fn whisper_times(
-    execution: Option<&WhisperExecution>,
+    execution: Option<&CaptionExecution>,
     take: &Path,
     words: &[String],
     lang: &str,
@@ -178,6 +179,15 @@ async fn whisper_times(
     time_script(execution, resource_dir, take, words, lang, total, tmp, token).await.map(Some)
 }
 
+async fn speko_take(key: &str, voice: &str, model: &str, lang: &str, group: &[ClipRow], tmp: &Path, ctx: &TaskCtx) -> Result<Vec<Segment>, String> {
+    let clip = group.first().ok_or("Klip Speko kosong")?;
+    let (wav, words) = crate::services::speko::speak(key,model,voice,&strip_voice_tags(&clip.narration),lang,&ctx.token).await?;
+    let duration_ms = ((wav.len() - 44) as f64 / 48.0).round() as i64;
+    let file = tmp.join(format!("speko-{}.wav",Uuid::new_v4()));
+    fs::write(&file,wav).map_err(|e| e.to_string())?;
+    Ok(vec![Segment {clip:clip.clone(),file,duration_ms,words,estimated:false}])
+}
+
 async fn gemini_take(
     key: &str,
     model: &str,
@@ -186,7 +196,7 @@ async fn gemini_take(
     group: &[ClipRow],
     tmp: &Path,
     ctx: &TaskCtx,
-    whisper: Option<&WhisperExecution>,
+    whisper: Option<&CaptionExecution>,
     resource_dir: Option<&Path>,
     base: f64,
     span: f64,
@@ -207,7 +217,7 @@ async fn gemini_take(
     split_take(&take_file, group, lang, tmp, ctx, whisper, resource_dir, base, span, false).await
 }
 
-async fn split_take(take_file: &Path, group: &[ClipRow], lang: &str, tmp: &Path, ctx: &TaskCtx, whisper: Option<&WhisperExecution>, resource_dir: Option<&Path>, base: f64, span: f64, strict: bool) -> Result<Vec<Segment>, String> {
+async fn split_take(take_file: &Path, group: &[ClipRow], lang: &str, tmp: &Path, ctx: &TaskCtx, whisper: Option<&CaptionExecution>, resource_dir: Option<&Path>, base: f64, span: f64, strict: bool) -> Result<Vec<Segment>, String> {
     ctx.progress(base + span * 0.55, Some("Mengukur suara"));
     let total_ms = probe_duration_ms(&take_file).await.unwrap_or(2000.0);
     let total = total_ms / 1000.0;
@@ -224,7 +234,7 @@ async fn split_take(take_file: &Path, group: &[ClipRow], lang: &str, tmp: &Path,
         Err(error) => {
             if strict { return Err(error); }
             // Keep the paid TTS recording; estimated captions can be synchronized again.
-            ctx.progress(base + span * 0.68, Some(&format!("Whisper gagal; caption sementara memakai perkiraan: {error}")));
+            ctx.progress(base + span * 0.68, Some(&format!("Sinkronisasi gagal; caption sementara memakai perkiraan: {error}")));
             None
         }
     };
@@ -540,6 +550,8 @@ pub fn generate_narration(
                 // Empty when unset; gemini::speak_with_model turns that into a
                 // message asking the user to pick a voice model in Pengaturan.
                 s.get("geminiTtsModel").and_then(|x| x.as_str()).unwrap_or("").to_string()
+            } else if prov == "speko" {
+                s.get("spekoTtsModel").and_then(|x| x.as_str()).unwrap_or("").to_string()
             } else {
                 s.get("elevenModel").and_then(|x| x.as_str()).unwrap_or("eleven_multilingual_v2").to_string()
             };
@@ -550,7 +562,7 @@ pub fn generate_narration(
             } else {
                 String::new()
             };
-            let whisper = if s["whisperAuto"].as_bool().unwrap_or(true) { Some(WhisperExecution::from_settings(&s)?) } else { None };
+            let whisper = if prov == "gemini" && s["whisperAuto"].as_bool().unwrap_or(true) { Some(CaptionExecution::from_settings(&conn)?) } else { None };
             (prov, v, p.language.clone(), m, k, whisper)
         };
 
@@ -593,7 +605,9 @@ pub fn generate_narration(
             };
             ctx.progress(base, Some(&msg));
 
-            let segments_res = if provider == "elevenlabs" {
+            let segments_res = if provider == "speko" {
+                speko_take(&key,&voice,&model,&lang,group,&tmp,&ctx).await
+            } else if provider == "elevenlabs" {
                 eleven_take(&key, &voice, &model, &lang, group, &tmp, res_dir.as_deref()).await
             } else {
                 gemini_take(&key, &model, &voice, &lang, group, &tmp, &ctx, whisper.as_ref(), res_dir.as_deref(), base, span).await
@@ -622,7 +636,7 @@ pub fn generate_narration(
 
         Ok(Some(if estimated > 0 {
             format!("{total_clips} adegan disuarakan; {estimated} caption masih perkiraan. Sinkronkan lagi lewat menu Caption.")
-        } else { format!("{total_clips} adegan disuarakan dalam satu rekaman") }))
+        } else { format!("{total_clips} adegan selesai disuarakan") }))
     });
 
     Ok(job)
@@ -647,7 +661,7 @@ pub fn sync_captions(
 
     let execution = {
         let conn = db.lock().unwrap();
-        WhisperExecution::from_settings(&get_settings(&conn))?
+        CaptionExecution::from_settings(&conn)?
     };
     if !execution.available(resource_dir.as_deref()) {
         return Err("Model Whisper belum diunduh. Unduh dulu di Pengaturan, bagian Caption akurat.".into());
@@ -667,7 +681,7 @@ pub fn sync_captions(
 
     let job = {
         let conn = db.lock().unwrap();
-        insert_job(&conn, &project_id, "align", "whisper", json!({"target": if execution.ssh_profile.is_some() { "ssh" } else { "local" }}), None, None)?
+        insert_job(&conn, &project_id, "align", execution.provider(), json!({"target": execution.target()}), None, None)?
     };
 
     let j_id = job.get("id").and_then(|x| x.as_str()).unwrap_or("").to_string();
@@ -772,7 +786,7 @@ pub fn sync_captions(
                     if let Some(obj) = meta.as_object_mut() {
                         obj.insert("words".to_string(), json!(timed));
                         obj.insert("estimatedTimings".to_string(), json!(false));
-                        obj.insert("timedBy".to_string(), json!("whisper"));
+                        obj.insert("timedBy".to_string(), json!(execution.provider()));
                     }
                     let conn = db_clone.lock().unwrap();
                     update_asset_meta(&conn, &asset.id, meta)?;

@@ -12,7 +12,7 @@ Langsung ke: [Flow](#google-flow) · [Caption dan audio](#caption-klip-dan-edito
 4. Klik Susun naskah. Cerita panjang diproses bertahap; lama proses mengikuti koneksi, panjang naskah, dan model.
 5. Di Naskah, periksa judul adegan, narasi, prompt, pemeran, dan urutan. Mengubah naskah setelah TTS dibuat memerlukan rekam ulang agar suara sesuai.
 6. Di Storyboard, buat lembar karakter sebagai referensi konsistensi, kemudian generate gambar yang belum tersedia.
-7. Buat suara narasi. Satu rangkaian rekaman dipotong per adegan; durasi akhir mengikuti narasi dan bisa berbeda dari durasi awal.
+7. Buat suara narasi. Gemini/ElevenLabs menggabungkan rekaman lalu memotongnya per adegan; Speko TTS membuat suara tiap klip dengan waktu kata bawaan; durasi akhir mengikuti narasi dan bisa berbeda dari durasi awal.
 8. Gunakan gerak kamera tanpa video AI, atau Jadikan video AI untuk klip tertentu/semua klip setelah gambar dan suara siap.
 9. Buka Editor untuk memeriksa caption, durasi, transisi, musik, dan overlay, kemudian ekspor.
 
@@ -20,13 +20,39 @@ Simpan otomatis berjalan setelah perubahan; Ctrl+S menyimpan langsung. Mode slee
 
 ## Pengaturan layanan AI
 
-Semua penyedia ada di Pengaturan → Layanan AI dan kunci, melalui tab Naskah, Suara TTS, Google Flow, Higgsfield, Vidgen, atau Caption Whisper. Menambahkan akun/key tidak otomatis mengganti model proyek lama; pilih Model AI di proyek.
+Semua penyedia ada di Pengaturan → Layanan AI dan kunci, melalui tab Naskah, Suara TTS, Google Flow, Higgsfield, Vidgen, Speko, atau Caption. Menambahkan akun/key tidak otomatis mengganti model proyek lama; pilih Model AI di proyek.
 
 ### Naskah dan TTS
 
 Isi key penyedia, pilih model, dan periksa koneksi. Gemini mendukung pool beberapa key yang sah dan menangani status kuota/server tiap key. Biaya serta kuota mengikuti masing-masing penyedia; angka kredit antarpenyedia tidak setara.
 
 Jika Susun naskah timeout, periksa model, koneksi, kuota, serta rincian error. Coba durasi pendek untuk membedakan gangguan koneksi/model dari beban naskah panjang.
+
+### Speko TTS dan STT
+
+**Isi kunci dan model:** Pengaturan → Layanan AI dan kunci → Speko. Masukkan **Router API key** `sk_speko_…`, lalu simpan/periksa. Pemeriksaan membaca katalog; tidak membuat suara atau transkripsi berbayar. Klik muat ulang model setelah akses akun berubah.
+
+Daftar mengikuti katalog akun, region, dan ketersediaan layanan. TTS hanya menampilkan model streaming dengan **word timings**; STT hanya model batch dengan **word timestamps**. Jika daftar kosong, akses akun belum menyediakan kemampuan tersebut. Aplikasi tidak memilih model pengganti secara diam-diam. Pilih bahasa proyek **Indonesia** untuk audio Indonesia; dukungan dan kualitas tetap mengikuti model yang dipilih.
+
+| Alur | Pengaturan | Hasil |
+| --- | --- | --- |
+| Gemini TTS + Speko STT | Model STT di tab Speko; tab Caption → mesin **Speko STT** → aktifkan **Sinkronkan otomatis**; proyek tetap Gemini TTS | Suara dari Gemini, waktu caption/pembagian adegan dari Speko |
+| Speko TTS | Model TTS di tab Speko; proyek → Ide cerita → suara **Speko TTS** | Suara dan waktu kata bawaan, tanpa STT tambahan |
+| Audio lama + Speko STT | Pilih mesin Speko STT; Editor → Caption → **Sinkronkan dengan Speko STT** | Audio lama tetap; waktu caption diperbarui |
+
+Suara Speko otomatis mengikuti suara bawaan model/bahasa. **Voice ID** opsional harus sesuai penyedia/model yang dipilih; kosongkan jika tidak punya. Preview suara Speko tidak dibuat otomatis agar tidak memakai biaya hanya karena membuka pilihan suara.
+
+Audio STT dikonversi ke WAV mono 16 kHz, dibagi maksimal 45 detik (atau lebih kecil mengikuti batas model), lalu waktunya digabung. Tumpang tindih satu detik membantu kata di batas potongan dan menambah sedikit durasi yang ditagih. Pemrosesan rekaman sampai 120 menit memakai unggahan bertahap tanpa webhook publik. Sinkronisasi dapat dibatalkan; bagian yang sudah diterima penyedia dapat tetap ditagih.
+
+**Biaya:** Speko TTS dihitung per karakter; STT per durasi audio. Gemini + Speko memakai tagihan kedua layanan dan belum tentu paling murah. Sinkronisasi ulang menagih STT lagi. Speko TTS/ElevenLabs memakai waktu bawaan sehingga tidak otomatis ditranskripsi ulang. Bila STT gagal setelah suara Gemini selesai, audio tetap disimpan dengan penanda caption perkiraan; sinkronkan lagi tanpa membuat ulang TTS. Permintaan gagal tidak otomatis diulang atau dialihkan ke model lain.
+
+Kunci disimpan terenkripsi di backend perangkat, tidak disertakan dalam installer. Audio/naskah dikirim ke Speko saat memakai layanan tersebut. Jangan unggah key ke GitHub atau kirim melalui chat. Integrasi diuji memakai server tiruan; uji akun/model berbayar perlu dilakukan dengan key Anda melalui aplikasi.
+
+Dokumentasi resmi: [model](https://docs.speko.ai/relay/models), [TTS streaming](https://docs.speko.ai/relay/tts/streaming), [STT batch](https://docs.speko.ai/relay/stt/batch).
+
+### Tema aplikasi
+
+Buka **Pengaturan → Umum → Tema aplikasi**, pilih **Gelap · Graphite** atau **Terang · Pearl**. Perubahan langsung terlihat dan disimpan. Tema memengaruhi antarmuka; warna gambar, caption video, thumbnail, dan hasil ekspor mengikuti pengaturan proyek.
 
 ### Google Flow
 
@@ -67,18 +93,18 @@ Referensi: [katalog Vidgen](https://vidgen.id/api/v1/models), [dokumentasi API](
 
 ### Whisper lokal / VPS
 
-Buka **Layanan AI dan kunci → Caption Whisper** dan pilih **Lokal** atau **VPS**.
+Buka **Layanan AI dan kunci → Caption** dan pilih **Lokal** atau **VPS**.
 
 - **Lokal:** program Whisper ikut installer. Klik **Unduh model** untuk mengambil model Small ±488 MB satu kali. Setelah model tersedia, proses Whisper berjalan di komputer tanpa layanan AI berbayar.
-- **VPS:** simpan koneksi di **Setting SSH**, pilih VPS untuk Whisper, lalu klik **Pasang Whisper di VPS** dan **Periksa Whisper VPS** pada tab Caption Whisper. Model diunduh langsung ke VPS; model lokal tidak diperlukan.
+- **VPS:** simpan koneksi di **Setting SSH**, pilih VPS untuk Whisper, lalu klik **Pasang Whisper di VPS** dan **Periksa Whisper VPS** pada tab Caption. Model diunduh langsung ke VPS; model lokal tidak diperlukan.
 - **Sinkronkan otomatis:** aktifkan untuk memproses timing setelah narasi Gemini dibuat. Jika dimatikan atau Whisper belum siap, narasi tetap bisa dibuat dengan timing perkiraan, lalu disinkronkan kemudian.
 
-Gemini TTS menghasilkan audio; Whisper membaca audio itu untuk mencari waktu kata dan batas adegan. Jalur ElevenLabs memakai timing kata dari penyedia. Whisper tidak membuat suara baru dan hasilnya tetap mungkin keliru. Pilihan lokasi Whisper terpisah dari lokasi ekspor video.
+Gemini TTS menghasilkan audio; Whisper membaca audio itu untuk mencari waktu kata dan batas adegan. Jalur ElevenLabs dan Speko TTS memakai timing kata dari penyedia. Whisper tidak membuat suara baru dan hasilnya tetap mungkin keliru. Pilihan lokasi Whisper terpisah dari lokasi ekspor video.
 
 ### Caption terlambat / tidak sesuai
 
 1. Editor → Caption, pilih klip.
-2. Sinkronkan dengan Whisper untuk membuat ulang waktu dari audio yang ada; ini tidak meminta TTS baru.
+2. Sinkronkan dengan Whisper atau Speko STT (sesuai pengaturan) untuk membuat ulang waktu dari audio yang ada; ini tidak meminta TTS baru.
 3. Geser seluruh caption menggunakan offset detik: -0.3 memajukan 0,3 detik; 0.3 menunda.
 4. Edit teks caption, klik di luar kolom untuk menerapkan. Jumlah kata sama mempertahankan timing; jumlah berbeda membagikan ulang waktu dalam rentang lama.
 5. Edit waktu per kata untuk mengatur mulai/akhir relatif terhadap awal klip.
@@ -162,7 +188,7 @@ Tutup aplikasi sebelum backup seluruh folder. Menyalin database saja tidak menye
 | Klip terlalu pendek / narasi terpotong | Periksa durasi klip dan audio. Untuk rekaman Gemini yang salah dibagi, lihat [perbaikan pembagian audio](#klip-terlalu-pendek). |
 | Dialog ekspor menutup setelah Mulai ekspor | Normal. Buka **Riwayat ekspor** untuk melihat progres dan hasil. Aplikasi harus tetap aktif. |
 | SSH gagal / Permission denied | Periksa profil, host, port, username, key/password, dan fingerprint host yang dipercaya. Password SSH berbeda dari izin sudo atau OTP. |
-| Model Whisper belum tersedia | Unduh model lokal dari tab Caption Whisper, atau pasang dan periksa Whisper di VPS yang dipilih. |
+| Model Whisper belum tersedia | Unduh model lokal dari tab Caption, atau pasang dan periksa Whisper di VPS yang dipilih. |
 | Whisper atau ekspor lambat | Gunakan pilihan VPS bila tersedia. CPU, resolusi/FPS, ukuran aset, dan jaringan memengaruhi waktu. Unggah/unduh tetap memakai bandwidth. |
 | FFmpeg tidak ditemukan di Linux/macOS | Pastikan FFmpeg tersedia pada `PATH` aplikasi. Paket `.deb` mendeklarasikan dependensinya; AppImage/macOS memerlukan penyiapan sistem. Pengguna lanjutan dapat memakai variabel `FFMPEG_PATH` ke executable yang benar. |
 

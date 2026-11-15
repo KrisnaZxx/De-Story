@@ -161,7 +161,7 @@ export function ModelPicker({
         onClick={() => setOpen(!open)}
         className={cx(
           'flex h-12 w-full items-center gap-3 rounded-xl border bg-surface px-3.5 text-left transition-colors disabled:opacity-50',
-          open ? 'border-ink' : value ? 'border-line-2 hover:border-ink-2' : 'border-[1.5px] border-accent bg-accent-soft'
+          open ? 'border-line-2' : value ? 'border-line-2 hover:border-line-3' : 'border-[1.5px] border-accent bg-accent-soft'
         )}
       >
         {renderIcon && current && renderIcon(current)}
@@ -174,7 +174,7 @@ export function ModelPicker({
                 : current && current.name !== value && <span className="truncate font-mono text-xs text-muted">{value}</span>}
             </>
           ) : (
-            <span className="text-[15px] font-semibold text-accent-dark">{loading ? 'Memuat daftar model…' : placeholder}</span>
+            <span className="text-[15px] font-semibold text-accent-ink">{loading ? 'Memuat daftar model…' : placeholder}</span>
           )}
         </span>
         {current && ctxLabel(current.contextLength) && (
@@ -186,7 +186,7 @@ export function ModelPicker({
       {open && (
         <div
           className={cx(
-            'absolute z-40 flex min-w-full flex-col overflow-hidden rounded-2xl border-[1.5px] border-ink bg-surface shadow-ink-lg',
+            'absolute z-40 flex min-w-full flex-col overflow-hidden rounded-2xl border-[1.5px] border-line-2 bg-surface shadow-ink-lg',
             align === 'right' ? 'right-0' : 'left-0',
             menu.up ? 'bottom-full mb-1.5' : 'top-full mt-1.5',
             menuClassName
@@ -194,7 +194,7 @@ export function ModelPicker({
           style={{ maxHeight: menu.max }}
         >
           <div className="flex flex-col gap-2 border-b border-line p-2.5">
-            <label className="flex h-10 items-center gap-2 rounded-xl border border-line-2 bg-paper px-3 focus-within:border-ink">
+            <label className="flex h-10 items-center gap-2 rounded-xl border border-line-2 bg-paper px-3 focus-within:border-line-2">
               <Search className="size-4 shrink-0 text-muted" />
               <input
                 ref={input}
@@ -226,7 +226,7 @@ export function ModelPicker({
                       onClick={() => setTags(on ? tags.filter((x) => x !== t) : [...tags, t])}
                       className={cx(
                         'h-7 rounded-full border px-2.5 text-xs font-medium',
-                        on ? 'border-ink bg-ink text-paper' : 'border-line-2 text-ink-2 hover:border-ink-2'
+                        on ? 'border-line-2 bg-accent-soft text-accent-ink' : 'border-line-2 text-ink-2 hover:border-line-3'
                       )}
                     >
                       {t}
@@ -240,7 +240,7 @@ export function ModelPicker({
                     onClick={() => setCheapFirst(!cheapFirst)}
                     className={cx(
                       'ml-auto inline-flex h-7 items-center gap-1 rounded-full border px-2.5 text-xs font-medium',
-                      cheapFirst ? 'border-ink bg-ink text-paper' : 'border-line-2 text-ink-2 hover:border-ink-2'
+                      cheapFirst ? 'border-line-2 bg-accent-soft text-accent-ink' : 'border-line-2 text-ink-2 hover:border-line-3'
                     )}
                   >
                     <ArrowDownNarrowWide className="size-3.5" />

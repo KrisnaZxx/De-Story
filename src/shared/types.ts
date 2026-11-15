@@ -1,10 +1,10 @@
 export type ProjectStatus = 'draft' | 'script' | 'storyboard' | 'editing' | 'exported'
 export type AspectRatio = '16:9' | '9:16'
-export type TtsProvider = 'gemini' | 'elevenlabs'
+export type TtsProvider = 'gemini' | 'elevenlabs' | 'speko'
 export type LlmProvider = 'gemini' | 'openrouter' | 'groq' | 'custom'
-export type ApiProvider = 'higgsfield' | 'gemini' | 'elevenlabs' | 'openrouter' | 'groq' | 'custom' | 'flow2api'
+export type ApiProvider = 'speko' | 'higgsfield' | 'gemini' | 'elevenlabs' | 'openrouter' | 'groq' | 'custom' | 'flow2api'
 /** Where a live model list comes from: an LLM provider, or a TTS catalog. */
-export type ModelSource = LlmProvider | 'gemini-tts' | 'elevenlabs'
+export type ModelSource = LlmProvider | 'gemini-tts' | 'elevenlabs' | 'speko-tts' | 'speko-stt'
 export type MotionType = 'camera' | 'video'
 export type CameraPresetId = 'zoomin' | 'zoomout' | 'panleft' | 'panright' | 'kenburns' | 'shake' | 'static'
 export type MotionStrength = 'halus' | 'sedang' | 'kuat'
@@ -287,6 +287,10 @@ export interface VoiceOption {
 }
 
 export interface AppSettings {
+  theme: 'dark' | 'light'
+  captionEngine: 'whisper' | 'speko'
+  spekoTtsModel: string
+  spekoSttModel: string
   defaultTtsProvider: TtsProvider
   defaultLanguage: string
   exportFolder: string | null
@@ -313,7 +317,7 @@ export interface AppSettings {
   /** Higgsfield models for new projects: the last ones picked in the Idea step. */
   imageModel: string
   videoModel: string
-  /** Time captions against the real voice with Whisper after narration is made (when the model is present). */
+  /** Automatically align Gemini narration using the selected caption engine; keep legacy setting name for existing projects. */
   whisperAuto: boolean
   whisperTarget: 'local' | 'ssh'
   vidgenParallelAccounts: number

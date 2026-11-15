@@ -129,7 +129,7 @@ function TimeRange({ o, total }: { o: Overlay; total: number }) {
                     if (k === 'start') updateOverlay(o.id, { start: Math.min(now, overlayEnd(o, total) - 0.1) })
                     else updateOverlay(o.id, { end: Math.max(now, o.start + 0.1) })
                   }}
-                  className="self-start text-xs font-semibold text-accent-dark hover:underline"
+                  className="self-start text-xs font-semibold text-accent-ink hover:underline"
                 >
                   Pakai posisi playhead
                 </button>
@@ -182,7 +182,7 @@ function TextSettings({ o }: { o: TextOverlay }) {
               aria-label={`Warna ${c}`}
               aria-pressed={o.color === c}
               onClick={() => updateOverlay(o.id, { color: c })}
-              className={cx('size-7 rounded-full border', o.color === c ? 'border-ink ring-2 ring-accent ring-offset-2 ring-offset-surface' : 'border-line-3')}
+              className={cx('size-7 rounded-full border', o.color === c ? 'border-line-2 ring-2 ring-accent ring-offset-2 ring-offset-surface' : 'border-line-3')}
               style={{ background: c }}
             />
           ))}
@@ -245,7 +245,7 @@ export function OverlayPanel({ total }: { total: number }) {
           <button
             type="button"
             onClick={() => void addImage()}
-            className="flex flex-col items-center gap-1.5 rounded-xl border border-line-2 bg-surface px-2 py-3 text-center hover:border-ink-2"
+            className="flex flex-col items-center gap-1.5 rounded-xl border border-line-2 bg-surface px-2 py-3 text-center hover:border-line-3"
           >
             <ImagePlus className="size-5" />
             <span className="text-[13px] font-semibold">Logo / gambar</span>
@@ -254,7 +254,7 @@ export function OverlayPanel({ total }: { total: number }) {
           <button
             type="button"
             onClick={addText}
-            className="flex flex-col items-center gap-1.5 rounded-xl border border-line-2 bg-surface px-2 py-3 text-center hover:border-ink-2"
+            className="flex flex-col items-center gap-1.5 rounded-xl border border-line-2 bg-surface px-2 py-3 text-center hover:border-line-3"
           >
             <Type className="size-5" />
             <span className="text-[13px] font-semibold">Teks</span>
@@ -272,7 +272,7 @@ export function OverlayPanel({ total }: { total: number }) {
               return (
                 <div
                   key={o.id}
-                  className={cx('flex items-center gap-2.5 rounded-xl border px-2 py-1.5', on ? 'border-accent bg-accent-soft' : 'border-line-2 hover:border-ink-2')}
+                  className={cx('flex items-center gap-2.5 rounded-xl border px-2 py-1.5', on ? 'border-accent bg-accent-soft' : 'border-line-2 hover:border-line-3')}
                 >
                   <button type="button" onClick={() => pick(o)} aria-pressed={on} className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
                     <span className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-line bg-[repeating-conic-gradient(#EFEAE2_0_25%,#FFFFFF_0_50%)] bg-[length:10px_10px]">

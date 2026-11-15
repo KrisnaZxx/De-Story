@@ -48,6 +48,7 @@ Hasil paket ada di `src-tauri/target/release/bundle`, kecuali `CARGO_TARGET_DIR`
 ```bash
 node scripts/editor-checks.mjs
 node scripts/vidgen-ui-checks.mjs
+node scripts/speech-ui-checks.mjs
 cargo test --lib --locked --manifest-path src-tauri/Cargo.toml -- --test-threads=1
 ```
 

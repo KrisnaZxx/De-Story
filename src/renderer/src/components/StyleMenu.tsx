@@ -51,10 +51,10 @@ export function StyleMenu({ value, onChange }: { value: string; onChange: (id: s
         onClick={() => setOpen(!open)}
         className={cx(
           'inline-flex h-10 min-w-0 items-center gap-2 rounded-full border bg-paper pl-3.5 pr-3 text-sm font-medium transition-colors',
-          open ? 'border-ink' : 'border-line-2 hover:border-ink-2'
+          open ? 'border-line-2' : 'border-line-2 hover:border-line-3'
         )}
       >
-        <StyleSwatch styleId={value} className="-ml-1.5 size-7 shrink-0 rounded-full border border-ink/20" iconSize={14} />
+        <StyleSwatch styleId={value} className="-ml-1.5 size-7 shrink-0 rounded-full border border-line-2/20" iconSize={14} />
         <span className="truncate">{current.name}</span>
         <ChevronDown className={cx('size-3.5 shrink-0 text-ink-2 transition-transform', open && 'rotate-180')} />
       </button>
@@ -103,15 +103,15 @@ export function StyleMenu({ value, onChange }: { value: string; onChange: (id: s
                 <span
                   className={cx(
                     'relative block aspect-square w-full overflow-hidden rounded-[11px] bg-sand transition-shadow',
-                    on ? 'border-2 border-accent shadow-ink' : 'border border-line group-hover:border-ink-2 group-focus-visible:border-ink'
+                    on ? 'border-2 border-accent shadow-ink' : 'border border-line group-hover:border-line-3 group-focus-visible:border-line-2'
                   )}
                 >
                   <StyleSwatch styleId={s.id} className="size-full transition-transform duration-500 ease-out group-hover:scale-[1.07]" iconSize={24} />
-                  <span className="absolute left-1.5 top-1.5 rounded-full bg-ink/75 px-1.5 py-px text-[10px] font-semibold text-paper">
+                  <span className="absolute left-1.5 top-1.5 rounded-full bg-black/75 px-1.5 py-px text-[10px] font-semibold text-white">
                     {CATEGORY_LABEL[s.category]}
                   </span>
                   {on && (
-                    <span className="absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full border-[1.5px] border-ink bg-accent text-white">
+                    <span className="absolute right-1.5 top-1.5 flex size-5 items-center justify-center rounded-full border-[1.5px] border-line-2 bg-accent text-white">
                       <Check className="size-3" strokeWidth={3} />
                     </span>
                   )}

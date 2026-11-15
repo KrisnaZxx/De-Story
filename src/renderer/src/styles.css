@@ -1,36 +1,65 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-paper: #faf7f2;
-  --color-surface: #ffffff;
-  --color-sand: #f3efe8;
-  --color-ink: #1f1d1a;
-  --color-ink-2: #57524a;
-  --color-muted: #6b665e;
-  --color-line: #e6dfd3;
-  --color-line-2: #d4cbbb;
-  --color-line-3: #bfb5a4;
-  --color-accent: #c93a1b;
-  --color-accent-dark: #9e2c13;
-  --color-accent-soft: #fff6f2;
-  --color-sun: #ffc93c;
-  --color-sun-soft: #fff1c7;
-  --color-sun-ink: #6b4e00;
-  --color-ok-soft: #e1f0dd;
-  --color-ok-ink: #25572b;
-  --color-info-soft: #e3ecf8;
-  --color-info-ink: #1e4a7a;
-  --color-bad-soft: #fbe3e1;
-  --color-bad-ink: #8a1f14;
-  --color-draft: #efeae2;
+  --color-paper: #17181c;
+  --color-surface: #202126;
+  --color-sand: #292a31;
+  --color-ink: #f0f0f4;
+  --color-ink-2: #bdc0cd;
+  --color-muted: #a0a4b3;
+  --color-line: #353740;
+  --color-line-2: #494c59;
+  --color-line-3: #626675;
+  --color-accent: #7553d4;
+  --color-accent-dark: #6541c3;
+  --color-accent-ink: #cbbaff;
+  --color-accent-soft: #302745;
+  --color-sun: #deb654;
+  --color-sun-soft: #373021;
+  --color-sun-ink: #f0cf82;
+  --color-ok-soft: #21362e;
+  --color-ok-ink: #92d6b0;
+  --color-info-soft: #233247;
+  --color-info-ink: #a8c9f4;
+  --color-bad-soft: #40272d;
+  --color-bad-ink: #ffb0bc;
+  --color-draft: #30323a;
 
-  --font-display: 'Bricolage Grotesque Variable', 'Segoe UI', sans-serif;
+  --font-display: 'Plus Jakarta Sans Variable', 'Segoe UI', sans-serif;
   --font-sans: 'Plus Jakarta Sans Variable', 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono Variable', Consolas, monospace;
 
-  --shadow-ink: 2px 2px 0 #1f1d1a;
-  --shadow-ink-md: 3px 3px 0 #1f1d1a;
-  --shadow-ink-lg: 4px 4px 0 #1f1d1a;
+  --shadow-ink: 0 2px 5px #00000024;
+  --shadow-ink-md: 0 6px 18px #00000030;
+  --shadow-ink-lg: 0 12px 36px #00000040;
+}
+
+:root { color-scheme: dark; }
+:root[data-theme='light'] {
+  color-scheme: light;
+  --color-paper: #f4f5f8;
+  --color-surface: #ffffff;
+  --color-sand: #edeef3;
+  --color-ink: #242531;
+  --color-ink-2: #535869;
+  --color-muted: #656b7c;
+  --color-line: #e0e2ea;
+  --color-line-2: #c5c9d6;
+  --color-line-3: #979fb1;
+  --color-accent: #7553d4;
+  --color-accent-dark: #6541c3;
+  --color-accent-ink: #6440bd;
+  --color-accent-soft: #f0ebff;
+  --color-sun: #dcb04e;
+  --color-sun-soft: #fff2d3;
+  --color-sun-ink: #71510d;
+  --color-ok-soft: #e4f4ea;
+  --color-ok-ink: #256344;
+  --color-info-soft: #e7effc;
+  --color-info-ink: #305d93;
+  --color-bad-soft: #fde8ec;
+  --color-bad-ink: #a12d45;
+  --color-draft: #e9ebf1;
 }
 
 @font-face {
@@ -153,7 +182,8 @@
     cursor: pointer;
   }
   ::selection {
-    background: var(--color-sun);
+    background: var(--color-accent-soft);
+    color: var(--color-accent-ink);
   }
   :focus-visible {
     outline: 2px solid var(--color-accent);

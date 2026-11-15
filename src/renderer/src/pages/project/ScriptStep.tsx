@@ -18,7 +18,7 @@ function InsertGap({ onInsert }: { onInsert: () => void }) {
       <button
         type="button"
         onClick={onInsert}
-        className="relative inline-flex h-6 items-center gap-1 rounded-full border border-dashed border-line-3 bg-paper px-2.5 text-xs font-medium text-ink-2 opacity-0 transition-opacity hover:border-ink-2 hover:text-ink focus:opacity-100 group-hover:opacity-100"
+        className="relative inline-flex h-6 items-center gap-1 rounded-full border border-dashed border-line-3 bg-paper px-2.5 text-xs font-medium text-ink-2 opacity-0 transition-opacity hover:border-line-3 hover:text-ink focus:opacity-100 group-hover:opacity-100"
       >
         <Plus className="size-3.5" />
         Sisipkan adegan
@@ -69,9 +69,9 @@ function SceneCard({ clip, index, total, onInsert }: { clip: Clip; index: number
   }
 
   return (
-    <article id={`scene-${clip.id}`} className="flex gap-4 rounded-2xl border border-line bg-surface p-4 transition-colors focus-within:border-ink-2">
+    <article id={`scene-${clip.id}`} className="flex gap-4 rounded-2xl border border-line bg-surface p-4 transition-colors focus-within:border-line-3">
       <div className="flex w-9 shrink-0 flex-col items-center gap-1 pt-1.5">
-        <span className="rounded-md bg-ink px-[7px] py-0.5 font-mono text-xs text-paper">{clipNumber(index)}</span>
+        <span className="rounded-md bg-accent-soft px-[7px] py-0.5 font-mono text-xs text-accent-ink">{clipNumber(index)}</span>
         <IconButton label="Pindah ke atas" size={30} className="border-transparent bg-transparent" disabled={index === 0} onClick={() => moveClip(clip.id, -1)}>
           <ArrowUp className="size-4" />
         </IconButton>
@@ -146,7 +146,7 @@ function SceneCard({ clip, index, total, onInsert }: { clip: Clip; index: number
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => insertTag(t)}
-                className="h-6 rounded-full border border-line-2 bg-paper px-2 font-mono text-[11px] text-ink-2 hover:border-ink-2 hover:text-ink"
+                className="h-6 rounded-full border border-line-2 bg-paper px-2 font-mono text-[11px] text-ink-2 hover:border-line-3 hover:text-ink"
               >
                 &lt;{t}&gt;
               </button>
@@ -258,7 +258,7 @@ export function ScriptStep() {
             <div className="flex items-start gap-3 rounded-xl bg-sand px-4 py-3 text-[13px] text-ink-2">
               <span className="shrink-0 font-semibold text-ink">Ide awal</span>
               <span className="line-clamp-2 flex-1">{project.synopsis}</span>
-              <button type="button" onClick={() => updateProject({ step: 1 })} className="shrink-0 font-semibold text-accent-dark hover:underline">
+              <button type="button" onClick={() => updateProject({ step: 1 })} className="shrink-0 font-semibold text-accent-ink hover:underline">
                 Ubah ide
               </button>
             </div>
@@ -274,7 +274,7 @@ export function ScriptStep() {
             <button
               type="button"
               onClick={() => insert(clips[clips.length - 1]?.id ?? null)}
-              className="mt-3 flex h-12 items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed border-line-3 text-sm font-medium text-ink-2 hover:border-ink-2 hover:text-ink"
+              className="mt-3 flex h-12 items-center justify-center gap-2 rounded-2xl border-[1.5px] border-dashed border-line-3 text-sm font-medium text-ink-2 hover:border-line-3 hover:text-ink"
             >
               <Plus className="size-4" />
               Tambah adegan
@@ -291,8 +291,8 @@ export function ScriptStep() {
           <span className="flex items-center gap-1.5 text-[13px] text-muted">
             <Bot className="size-3.5" />
             Visual disusun oleh {writer ? `${llmName(writer.provider)} · ` : ''}
-            <span className={cx('font-mono', writer && !writer.model && 'text-accent-dark')}>{writer ? writer.model || 'model belum dipilih' : '…'}</span>
-            <button type="button" onClick={() => void openSettings()} className="font-semibold text-accent-dark hover:underline">
+            <span className={cx('font-mono', writer && !writer.model && 'text-accent-ink')}>{writer ? writer.model || 'model belum dipilih' : '…'}</span>
+            <button type="button" onClick={() => void openSettings()} className="font-semibold text-accent-ink hover:underline">
               Ganti
             </button>
           </span>

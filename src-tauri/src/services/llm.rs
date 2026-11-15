@@ -394,6 +394,7 @@ mod tests {
 fn model_key_provider(source: &str) -> &str {
     match source {
         "gemini-tts" => "gemini",
+        "speko-tts" | "speko-stt" => "speko",
         _ => source,
     }
 }
@@ -430,6 +431,8 @@ pub async fn list_models(db: &DbPool, source: &str, refresh: bool) -> Result<Val
         "gemini" => gemini::list_models(&key_val, "text").await?,
         "gemini-tts" => gemini::list_models(&key_val, "tts").await?,
         "elevenlabs" => elevenlabs::list_models(&key_val).await?,
+        "speko-tts" => super::speko::list_models(&key_val,"tts").await?,
+        "speko-stt" => super::speko::list_models(&key_val,"stt").await?,
         "openrouter" => openrouter_models(Some(&key_val)).await?,
         "groq" => groq_models(&key_val).await?,
         "custom" => custom_models(&custom_base, Some(&key_val)).await?,

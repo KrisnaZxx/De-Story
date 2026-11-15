@@ -33,11 +33,11 @@ export function StylePicker({ value, onChange }: { value: string; onChange: (id:
                   className="size-full transition-transform duration-500 ease-out group-hover:scale-[1.06]"
                   iconSize={30}
                 />
-                <span className="absolute left-2 top-2 rounded-full bg-ink/75 px-2 py-0.5 text-[11px] font-semibold text-paper">
+                <span className="absolute left-2 top-2 rounded-full bg-black/75 px-2 py-0.5 text-[11px] font-semibold text-white">
                   {CATEGORY_LABEL[s.category]}
                 </span>
                 {on && (
-                  <span className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full border-[1.5px] border-ink bg-accent text-white">
+                  <span className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full border-[1.5px] border-line-2 bg-accent text-white">
                     <Check className="size-3.5" strokeWidth={3} />
                   </span>
                 )}

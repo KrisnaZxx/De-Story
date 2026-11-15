@@ -1,4 +1,5 @@
 pub mod audio;
+pub mod speko;
 pub mod elevenlabs;
 pub mod flow2api;
 pub mod gemini;

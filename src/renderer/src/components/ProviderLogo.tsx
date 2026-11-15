@@ -8,9 +8,10 @@ import { cx } from './ui'
 const FILES = import.meta.glob('../assets/providers/*.{svg,png}', { eager: true, import: 'default' }) as Record<string, string>
 const file = (name: string): string => FILES[`../assets/providers/${name}`]
 
-export type ProviderLogoId = 'gemini' | 'openrouter' | 'groq' | 'elevenlabs' | 'higgsfield' | 'custom' | 'flow2api'
+export type ProviderLogoId = 'speko' | 'gemini' | 'openrouter' | 'groq' | 'elevenlabs' | 'higgsfield' | 'custom' | 'flow2api'
 
 const LOOK: Record<ProviderLogoId, { bg: string; src?: string; inset: number }> = {
+  speko: { bg: '#DCD7FF', inset: 0.24 },
   gemini: { bg: '#FFFFFF', src: 'gemini.svg', inset: 0.2 },
   openrouter: { bg: '#FFFFFF', src: 'openrouter.svg', inset: 0.2 },
   groq: { bg: '#F55036', src: 'groq.svg', inset: 0.2 },
@@ -25,14 +26,14 @@ export function ProviderLogo({ id, size = 40, className }: { id: ProviderLogoId;
   const inner = Math.round(size * (1 - look.inset * 2))
   return (
     <span
-      className={cx('flex shrink-0 items-center justify-center overflow-hidden border border-ink', className)}
+      className={cx('flex shrink-0 items-center justify-center overflow-hidden border border-line-2', className)}
       style={{ width: size, height: size, background: look.bg, borderRadius: Math.round(size * 0.26) }}
       aria-hidden="true"
     >
       {look.src ? (
         <img src={file(look.src)} alt="" draggable={false} style={{ width: inner, height: inner }} className="object-contain" />
       ) : (
-        <Server style={{ width: inner, height: inner }} strokeWidth={1.8} className="text-ink" />
+        <Server style={{ width: inner, height: inner }} strokeWidth={1.8} className="text-[#252334]" />
       )}
     </span>
   )

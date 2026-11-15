@@ -1459,7 +1459,7 @@ pub fn generate_clip_tts(
     let p_id = project_id.clone();
 
     job_mgr.spawn_task(&j_id, QueueName::Tts, move |ctx| async move {
-        let (provider, voice, lang, model, key) = {
+        let (provider, voice, lang, model, key, captions) = {
             let conn = db_clone.lock().unwrap();
             let p = get_project(&conn, &p_id).ok_or("Proyek tidak ditemukan")?;
             let s = get_settings(&conn);
@@ -1471,7 +1471,8 @@ pub fn generate_clip_tts(
                 // different model than the one chosen in Pengaturan.
                 s.get("geminiTtsModel").and_then(|x| x.as_str()).unwrap_or("").to_string()
             } else {
-                s.get("elevenModel").and_then(|x| x.as_str()).unwrap_or("eleven_multilingual_v2").to_string()
+                if prov == "speko" { s.get("spekoTtsModel").and_then(|x| x.as_str()).unwrap_or("").to_string() }
+                else { s.get("elevenModel").and_then(|x| x.as_str()).unwrap_or("eleven_multilingual_v2").to_string() }
             };
             let v = if !p.tts_voice.is_empty() {
                 p.tts_voice.clone()
@@ -1480,12 +1481,19 @@ pub fn generate_clip_tts(
             } else {
                 String::new()
             };
-            (prov, v, p.language.clone(), m, k)
+            let captions = if prov == "gemini" && s["whisperAuto"].as_bool().unwrap_or(true) {
+                Some(crate::speech::captions::CaptionExecution::from_settings(&conn)?)
+            } else { None };
+            (prov, v, p.language.clone(), m, k, captions)
         };
 
         ctx.progress(0.2, Some("Membuat suara"));
 
-        let (rel, words_opt, estimated) = if provider == "elevenlabs" {
+        let (rel, words_opt, mut estimated) = if provider == "speko" {
+            let (audio,words) = super::speko::speak(&key,&model,&voice,&strip_voice_tags(&text),&lang,&ctx.token).await?;
+            let r = save_asset_file(&p_id,"audio",".wav",&audio)?;
+            (r,Some(words),false)
+        } else if provider == "elevenlabs" {
             if voice.is_empty() {
                 return Err("Pilih suara ElevenLabs dulu di langkah Ide cerita.".into());
             }
@@ -1502,11 +1510,26 @@ pub fn generate_clip_tts(
         let abs = asset_abs_path(&p_id, &rel);
         let audio_ms = probe_duration_ms(&abs).await.unwrap_or(2000.0) as i64;
 
-        let words = if let Some(w) = words_opt {
+        let mut words = if let Some(w) = words_opt {
             w
         } else {
             estimate_word_timings(&strip_voice_tags(&text), (audio_ms as f64) / 1000.0)
         };
+
+        if let Some(execution) = captions {
+            use tauri::Manager;
+            let resources = app_clone.path().resource_dir().ok();
+            if execution.available(resources.as_deref()) {
+                ctx.progress(0.9,Some(execution.message()));
+                let tmp = tempfile::tempdir().map_err(|e| e.to_string())?;
+                let script = crate::speech::align::spoken_words(&text);
+                match crate::speech::captions::time_script(&execution,resources.as_deref(),&abs,&script,&lang,audio_ms as f64 / 1000.0,tmp.path(),&ctx.token).await {
+                    Ok(timed) => { words = timed; estimated = false; }
+                    Err(error) => { ctx.progress(0.95,Some(&format!("Audio tersimpan; caption masih perkiraan: {error}"))); }
+                }
+            }
+        }
+        if ctx.token.is_cancelled() { return Err("Dibatalkan".into()); }
 
         let meta = json!({
             "words": words,

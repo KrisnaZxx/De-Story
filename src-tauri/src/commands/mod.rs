@@ -761,6 +761,8 @@ async fn test_provider(
         hf::test_credentials(&k).await
     } else if provider == "elevenlabs" {
         elevenlabs::test_key(&k).await
+    } else if provider == "speko" {
+        crate::services::speko::test_key(&k).await
     } else if provider == "gemini" {
         let results = test_gemini_pool(normalized_gemini_keys(&k)).await;
         summarize_gemini_tests(&results)
@@ -1014,6 +1016,8 @@ pub fn settings_reveal_key(db: State<'_, DbPool>, provider: String) -> Result<Op
 pub async fn settings_voices(db: State<'_, DbPool>, provider: String) -> Result<Vec<Value>, String> {
     if provider == "gemini" {
         Ok(gemini::list_voices())
+    } else if provider == "speko" {
+        Ok(vec![json!({"id":"auto","name":"Otomatis sesuai bahasa","description":"Suara bawaan model Speko"})])
     } else {
         let key = {
             let conn = db.lock().unwrap();

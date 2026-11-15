@@ -36,8 +36,8 @@ export function TransitionButton({ clip, next, x }: { clip: Clip; next: Clip; x:
         aria-expanded={open}
         title={`Transisi: ${current.label}`}
         className={cx(
-          'absolute top-1/2 z-[2] flex size-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[1.5px] border-ink shadow-[0_1px_0_rgba(0,0,0,0.25)] transition-colors',
-          open ? 'bg-accent text-white' : current.id === 'cut' ? 'bg-surface text-ink-2 hover:bg-sun-soft' : 'bg-sun text-ink hover:bg-sun-soft'
+          'absolute top-1/2 z-[2] flex size-7 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-[1.5px] border-line-2 shadow-[0_1px_0_rgba(0,0,0,0.25)] transition-colors',
+          open ? 'bg-accent text-white' : current.id === 'cut' ? 'bg-surface text-ink-2 hover:bg-sun-soft' : 'bg-sun text-[#241b00] hover:bg-sun-soft'
         )}
         style={{ left: x }}
       >
@@ -61,7 +61,7 @@ export function TransitionButton({ clip, next, x }: { clip: Clip; next: Clip; x:
               }}
               className={cx('flex w-full items-center gap-3 rounded-xl px-2.5 py-2 text-left', on ? 'bg-sun-soft' : 'hover:bg-sand')}
             >
-              <span className={cx('flex size-8 shrink-0 items-center justify-center rounded-full border', on ? 'border-ink bg-sun' : 'border-line-2 bg-surface')}>
+              <span className={cx('flex size-8 shrink-0 items-center justify-center rounded-full border', on ? 'border-sun bg-sun text-[#241b00]' : 'border-line-2 bg-surface')}>
                 <I className="size-4" />
               </span>
               <span className="flex min-w-0 flex-col">
@@ -78,7 +78,7 @@ export function TransitionButton({ clip, next, x }: { clip: Clip; next: Clip; x:
               joints.forEach((c) => c.transition !== clip.transition && updateClip(c.id, { transition: clip.transition }))
               setOpen(false)
             }}
-            className="mt-1 w-full border-t border-line px-2.5 pb-1 pt-2.5 text-left text-xs font-semibold text-accent-dark hover:underline"
+            className="mt-1 w-full border-t border-line px-2.5 pb-1 pt-2.5 text-left text-xs font-semibold text-accent-ink hover:underline"
           >
             Pakai “{current.label}” untuk semua sambungan
           </button>

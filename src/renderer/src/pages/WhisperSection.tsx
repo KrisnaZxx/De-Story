@@ -9,7 +9,8 @@ const mb = (n: number): string => `${Math.round(n / 1_000_000).toLocaleString('i
 /** Whisper can time captions locally or through the saved SSH connection. */
 export function WhisperSection({ settings, onSettings }: { settings: AppSettings; onSettings: (s: AppSettings) => void }) {
   const [status, setStatus] = useState<WhisperStatus | null>(null)
-  const remote = settings.whisperTarget === 'ssh'
+  const speko = settings.captionEngine === 'speko'
+  const remote = !speko && settings.whisperTarget === 'ssh'
   const [server, setServer] = useState<WhisperRemoteStatus | null>(null)
   const [remoteBusy, setRemoteBusy] = useState('')
   const [message, setMessage] = useState('')
@@ -66,12 +67,22 @@ export function WhisperSection({ settings, onSettings }: { settings: AppSettings
         </span>
         <div className="flex flex-col gap-1">
           <h2 className="font-display text-[22px] font-bold leading-tight">Caption akurat</h2>
-          <p className="text-sm text-ink-2">Menyamakan waktu tiap kata caption dengan suara narasi, di laptop atau VPS.</p>
+          <p className="text-sm text-ink-2">Pilih pengenal suara untuk menyamakan waktu caption dengan audio Gemini atau audio yang sudah ada.</p>
         </div>
       </div>
       <section className="flex flex-col gap-4 rounded-2xl border border-line bg-surface px-5 py-[18px]">
+        <Field label="Mesin sinkronisasi caption">
+          <select aria-label="Mesin sinkronisasi caption" className={`${inputCls} h-11`} value={settings.captionEngine ?? 'whisper'} onChange={async (e) => { try { onSettings(await window.api.settings.set({ captionEngine: e.target.value as AppSettings['captionEngine'] })) } catch (e) { setMessage(errorText(e)) } }}>
+            <option value="whisper">Whisper · lokal / VPS</option><option value="speko">Speko STT · cloud</option>
+          </select>
+        </Field>
+        {speko ? <div className="flex flex-col gap-2 rounded-xl bg-info-soft p-4 text-sm text-info-ink">
+          <p className="font-semibold">Gemini TTS → Speko STT → caption</p>
+          <p>Isi API key dan pilih model STT di tab Speko. Model terpilih: {settings.spekoSttModel || 'belum dipilih'}. Audio panjang dibagi mengikuti batas unggah model; waktu hasil digabung kembali ke proyek.</p>
+          <p>Tidak perlu mengunduh Whisper. Audio dikirim ke Speko dan ditagih per durasi setiap sinkronisasi. Suara Speko TTS dan ElevenLabs memakai waktu bawaan tanpa STT tambahan.</p>
+        </div> : <>
         <Field label="Jalankan Whisper di">
-          <select className={inputCls} value={settings.whisperTarget ?? 'local'} disabled={!!remoteBusy} onChange={(e) => void saveTarget(e.target.value as AppSettings['whisperTarget'])}>
+          <select aria-label="Jalankan Whisper di" className={`${inputCls} h-11`} value={settings.whisperTarget ?? 'local'} disabled={!!remoteBusy} onChange={(e) => void saveTarget(e.target.value as AppSettings['whisperTarget'])}>
             <option value="local">Lokal — laptop ini</option>
             <option value="ssh">VPS melalui SSH</option>
           </select>
@@ -94,7 +105,7 @@ export function WhisperSection({ settings, onSettings }: { settings: AppSettings
         ) : (
         <>
         <div className="flex items-center gap-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] border border-ink bg-ink text-paper">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-[10px] border border-line-2 bg-accent-soft text-accent-ink">
             <AudioLines className="size-5" />
           </span>
           <div className="flex flex-1 flex-col">
@@ -111,7 +122,7 @@ export function WhisperSection({ settings, onSettings }: { settings: AppSettings
         </div>
 
         <p className="text-[13px] leading-relaxed text-ink-2">
-          Dipakai untuk suara Gemini TTS, yang tidak mengirim waktu per kata. Suara ElevenLabs sudah membawa waktu kata yang presisi. Setelah diunduh,
+          Dipakai untuk suara Gemini TTS, yang tidak mengirim waktu per kata. Suara ElevenLabs dan Speko TTS sudah membawa waktu kata. Setelah diunduh,
           Whisper berjalan tanpa internet dan tanpa biaya.
         </p>
 
@@ -148,6 +159,7 @@ export function WhisperSection({ settings, onSettings }: { settings: AppSettings
         </div>
         </>
         )}
+        </>}
         {message && <p role="alert" className="rounded-lg bg-bad-soft px-3 py-2 text-sm text-bad-ink">{message}</p>}
 
         <div className="flex items-center gap-3 border-t border-dashed border-line pt-4">

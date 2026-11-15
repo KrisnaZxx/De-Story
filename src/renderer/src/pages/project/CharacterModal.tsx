@@ -113,7 +113,7 @@ function EditCharacter({ characterId, onClose }: { characterId: string | null; o
 
   return (
     <Modal open onClose={onClose} title="Lembar karakter" subtitle={`Dipakai di ${usedIn} klip sebagai referensi supaya tampilannya konsisten.`} width={760}>
-      <div className="relative aspect-video overflow-hidden rounded-xl border-[1.5px] border-ink bg-paper">
+      <div className="relative aspect-video overflow-hidden rounded-xl border-[1.5px] border-line-2 bg-paper">
         {sheet ? (
           <img src={sheet.url} alt={`Lembar karakter ${c.name}`} className="size-full object-contain" />
         ) : running ? null : (

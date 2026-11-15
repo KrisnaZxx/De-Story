@@ -284,9 +284,9 @@ export function Player({
   }
 
   return (
-    <section ref={stage} className="flex min-h-0 min-w-0 flex-col items-center justify-center gap-2 overflow-hidden bg-[#EFEAE2] p-2">
+    <section ref={stage} className="flex min-h-0 min-w-0 flex-col items-center justify-center gap-2 overflow-hidden bg-sand p-2">
       <div
-        className="relative shrink-0 overflow-hidden rounded-xl border-[1.5px] border-ink bg-ink"
+        className="relative shrink-0 overflow-hidden rounded-xl border-[1.5px] border-line-2 bg-[#0d0e11]"
         style={{ width: box.w, height: box.h }}
         onClick={toggle}
       >
@@ -304,7 +304,7 @@ export function Player({
           .map((o) => (
             <OverlayItem key={o.id} o={o} asset={null} box={box} editable={editOverlays} />
           ))}
-        {!items.length && <div className="flex size-full items-center justify-center text-paper">Belum ada klip</div>}
+        {!items.length && <div className="flex size-full items-center justify-center text-white">Belum ada klip</div>}
       </div>
       <div className="flex h-10 w-full max-w-[1000px] shrink-0 items-center justify-center gap-2">
         <IconButton label="Klip sebelumnya" className="border-transparent bg-transparent" onClick={() => jump(-1)}>
@@ -317,7 +317,7 @@ export function Player({
             if (!playing && t >= total - 0.05) seek(0)
             toggle()
           }}
-          className="flex size-9 items-center justify-center rounded-full border-[1.5px] border-ink bg-ink text-paper hover:bg-ink-2"
+          className="flex size-9 items-center justify-center rounded-full border-[1.5px] border-line-2 bg-accent-soft text-accent-ink hover:bg-accent/20"
         >
           {playing ? <Pause className="size-5" fill="currentColor" /> : <Play className="ml-0.5 size-5" fill="currentColor" />}
         </button>

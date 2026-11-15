@@ -36,7 +36,7 @@ export function IdeaStep() {
 
   if (!project) return null
   const ready = ttsReadiness(keys)
-  const blocked = keys.length ? (['gemini', 'elevenlabs'] as const).filter((p) => !ready[p].ok) : []
+  const blocked = keys.length ? (['gemini', 'elevenlabs', 'speko'] as const).filter((p) => !ready[p].ok) : []
   const openSettings = async (): Promise<void> => {
     try {
       await flush()
@@ -89,7 +89,7 @@ export function IdeaStep() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-2 rounded-2xl border-[1.5px] border-ink bg-surface px-[18px] pb-3 pt-4 shadow-ink-md">
+            <div className="flex flex-col gap-2 rounded-2xl border-[1.5px] border-line-2 bg-surface px-[18px] pb-3 pt-4 shadow-ink-md">
               <label htmlFor="sinopsis" className="text-[13px] font-semibold text-ink-2">
                 Ide cerita atau sinopsis
               </label>
@@ -146,11 +146,11 @@ export function IdeaStep() {
                         onClick={() => updateProject({ aspectRatio: f.id })}
                         className={cx(
                           'flex h-12 items-center gap-2.5 rounded-xl px-3 text-left',
-                          on ? 'border-2 border-accent bg-accent-soft' : 'border border-line-2 bg-surface hover:border-ink-2'
+                          on ? 'border-2 border-accent bg-accent-soft' : 'border border-line-2 bg-surface hover:border-line-3'
                         )}
                       >
                         <span className="flex w-[26px] justify-center">
-                          <span className="rounded-[3px] border-[1.8px] border-ink" style={{ width: f.w, height: f.h }} />
+                          <span className="rounded-[3px] border-[1.8px] border-line-2" style={{ width: f.w, height: f.h }} />
                         </span>
                         <span className="flex flex-col leading-tight">
                           <span className="text-sm font-semibold">{f.label}</span>
@@ -169,7 +169,7 @@ export function IdeaStep() {
                 <Segmented
                   value={project.ttsProvider}
                   onChange={(v) => updateProject({ ttsProvider: v, ttsVoice: v === 'gemini' ? 'Charon' : '' })}
-                  options={(['gemini', 'elevenlabs'] as const).map((p) => ({
+                  options={(['gemini', 'elevenlabs', 'speko'] as const).map((p) => ({
                     id: p,
                     label: TTS_NAMES[p],
                     disabled: blocked.includes(p),
@@ -180,10 +180,10 @@ export function IdeaStep() {
               </div>
               {blocked.length > 0 && (
                 <span className="text-[13px] text-muted">
-                  {blocked.length === 2
+                  {blocked.length === 3
                     ? 'Belum ada kunci suara narator yang valid, jadi suara belum bisa dibuat.'
                     : `${ready[blocked[0]].reason}, jadi ${TTS_NAMES[blocked[0]]} belum bisa dipilih.`}{' '}
-                  <button type="button" onClick={() => void openSettings()} className="font-semibold text-accent-dark hover:underline">
+                  <button type="button" onClick={() => void openSettings()} className="font-semibold text-accent-ink hover:underline">
                     Atur di Pengaturan
                   </button>
                 </span>
@@ -221,8 +221,8 @@ export function IdeaStep() {
           <span className="flex items-center gap-1.5 text-[13px] text-muted">
             <Bot className="size-3.5" />
             Disusun oleh {writer ? `${llmName(writer.provider)} · ` : ''}
-            <span className={cx('font-mono', writer && !writer.model && 'text-accent-dark')}>{writer ? writer.model || 'model belum dipilih' : '…'}</span>
-            <button type="button" onClick={() => void openSettings()} className="font-semibold text-accent-dark hover:underline">
+            <span className={cx('font-mono', writer && !writer.model && 'text-accent-ink')}>{writer ? writer.model || 'model belum dipilih' : '…'}</span>
+            <button type="button" onClick={() => void openSettings()} className="font-semibold text-accent-ink hover:underline">
               Ganti
             </button>
           </span>
