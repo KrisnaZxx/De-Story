@@ -1560,7 +1560,7 @@ export function Settings() {
               <section className="flex flex-col gap-3.5 rounded-2xl border border-line bg-surface p-6 text-[15px] leading-relaxed text-ink-2">
                 <div className="flex flex-col">
                   <h1 className="font-display text-[34px] font-bold tracking-[-0.015em] text-ink">De Story</h1>
-                  <span className="text-sm font-medium text-muted">v1.3.0 · by KrisnaZxx</span>
+                  <span className="text-sm font-medium text-muted">v1.3.1 · by KrisnaZxx</span>
                 </div>
                 <p>Semua proyek, gambar, video, dan suara disimpan di komputer ini.</p>
                 <p>

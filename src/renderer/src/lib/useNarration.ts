@@ -36,7 +36,7 @@ export function useNarration(): {
     if (voiced > 0) {
       const ok = await confirmDialog({
         title: 'Rekam ulang suara narasi?',
-        body: 'Narasi semua adegan direkam ulang dalam satu kali jalan lalu dipotong per adegan, supaya suaranya tetap konsisten. Suara lama tetap tersimpan di riwayat.',
+        body: `Narasi ${clips.filter((c) => c.narration.trim()).length} adegan direkam ulang. Proses ini memakai kuota atau biaya layanan suara. Suara lama tetap tersimpan di riwayat.`,
         confirm: 'Rekam ulang'
       })
       if (!ok) return

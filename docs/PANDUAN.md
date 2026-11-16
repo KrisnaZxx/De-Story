@@ -184,6 +184,7 @@ Tutup aplikasi sebelum backup seluruh folder. Menyalin database saja tidak menye
 | Ekstensi Terhubung tetapi generate gagal | Periksa akun Flow, status sesi, model proyek, kuota, dan metode captcha. Sambungan worker saja belum menjamin akun siap. |
 | Sesi Flow kedaluwarsa | Aktifkan pembaruan otomatis saat aplikasi aktif. Gunakan filter akun bermasalah; login ulang hanya pada akun yang memerlukannya. Tidak ada jaminan durasi sesi tetap. |
 | Susun naskah timeout | Periksa key, model, kuota, koneksi, serta rincian error. Coba proyek pendek untuk membedakan gangguan layanan dari beban naskah panjang. |
+| Speko TTS gagal dengan pesan urutan/jenis event | Perbarui ke v1.3.1 atau lebih baru; event pencatatan pemakaian `usage.updated` sudah ditangani. Bila masih gagal, simpan pesan galat dan jangan mengulang seluruh narasi berkali-kali. Teks yang sudah diterima Speko dapat tetap ditagih meski hasil belum tersimpan. |
 | Caption lebih telat daripada suara | Sinkronkan ulang dengan Whisper. Offset negatif, misalnya `-0.3`, memajukan caption 0,3 detik. Periksa awal, tengah, dan akhir. |
 | Klip terlalu pendek / narasi terpotong | Periksa durasi klip dan audio. Untuk rekaman Gemini yang salah dibagi, lihat [perbaikan pembagian audio](#klip-terlalu-pendek). |
 | Dialog ekspor menutup setelah Mulai ekspor | Normal. Buka **Riwayat ekspor** untuk melihat progres dan hasil. Aplikasi harus tetap aktif. |

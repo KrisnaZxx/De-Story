@@ -287,6 +287,8 @@ async fn speak_at(
                             done = true;
                             socket.send(Message::Text(json!({"type":"session.close"}).to_string().into())).await.map_err(|_| "Gagal menutup sesi Speko")?;
                         }
+                        // Usage metadata can arrive before, during, or after an utterance.
+                        "usage.updated" if ready && event["usage"].is_object() => {}
                         "session.closed" if done => {
                             if pcm.is_empty() || pcm.len() % 2 != 0 { return Err("Audio Speko kosong atau tidak lengkap".into()); }
                             let duration = pcm.len() as f64 / 48000.0;
@@ -294,7 +296,10 @@ async fn speak_at(
                             return Ok((super::audio::pcm_to_wav(&pcm,24000,1,16),words));
                         }
                         "error" | "session.error" => return Err("Speko menolak sintesis. Periksa model, voice ID, bahasa, saldo, dan batas akun di dashboard.".into()),
-                        _ => return Err("Urutan atau jenis event Speko TTS tidak didukung; hasil tidak lengkap tidak disimpan".into()),
+                        kind => {
+                            let name: String = kind.chars().filter(|c| c.is_ascii_alphanumeric() || "._-".contains(*c)).take(48).collect();
+                            return Err(format!("Event Speko TTS `{name}` tidak didukung atau urutannya tidak valid; hasil tidak lengkap tidak disimpan"));
+                        }
                     }
                 }
                 Message::Binary(bytes) if started && !done => {
@@ -494,7 +499,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn tts_websocket_auth_multiple_timings_and_complete_close() {
+    async fn tts_websocket_auth_timings_usage_and_complete_close() {
         use tokio_tungstenite::tungstenite::handshake::server::{Request, Response};
         let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
         let url = format!("ws://{}/v1/tts/stream", listener.local_addr().unwrap());
@@ -532,6 +537,13 @@ mod tests {
                 .unwrap()
                 .contains("input.commit"));
             ws.send(Message::Text(
+                json!({"type":"usage.updated","usage":{"characters":10}})
+                    .to_string()
+                    .into(),
+            ))
+            .await
+            .unwrap();
+            ws.send(Message::Text(
                 json!({"type":"utterance.started","sequence":1})
                     .to_string()
                     .into(),
@@ -543,6 +555,13 @@ mod tests {
                 .unwrap();
             for (text, start, end) in [("Halo", 0, 500), ("dunia", 450, 950)] {
                 ws.send(Message::Text(json!({"type":"utterance.timings","sequence":1,"granularity":"word","spans":[{"text":text,"start_ms":start,"end_ms":end}]}).to_string().into())).await.unwrap();
+                ws.send(Message::Text(
+                    json!({"type":"usage.updated","usage":{"characters":10}})
+                        .to_string()
+                        .into(),
+                ))
+                .await
+                .unwrap();
             }
             ws.send(Message::Text(
                 json!({"type":"utterance.done","sequence":1})
@@ -559,6 +578,13 @@ mod tests {
                 .to_text()
                 .unwrap()
                 .contains("session.close"));
+            ws.send(Message::Text(
+                json!({"type":"usage.updated","usage":{"characters":10}})
+                    .to_string()
+                    .into(),
+            ))
+            .await
+            .unwrap();
             ws.send(Message::Text(
                 json!({"type":"session.closed","usage":{}})
                     .to_string()
@@ -610,18 +636,27 @@ mod tests {
             ws.send(Message::Binary(vec![0; 4800].into()))
                 .await
                 .unwrap();
+            ws.send(Message::Text(
+                json!({"type":"usage.updated","usage":{"characters":4}})
+                    .to_string()
+                    .into(),
+            ))
+            .await
+            .unwrap();
         });
-        assert!(speak_at(
+        let error = speak_at(
             &url,
             "test",
             "vendor/model",
             "",
             "Halo",
             "id",
-            &CancellationToken::new()
+            &CancellationToken::new(),
         )
         .await
-        .is_err());
+        .unwrap_err();
+        assert!(error.contains("lengkap"));
+        assert!(!error.contains("Event Speko TTS"));
         server.await.unwrap();
         let cancelled = CancellationToken::new();
         cancelled.cancel();
