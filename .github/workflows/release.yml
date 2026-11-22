@@ -1,4 +1,4 @@
-name: Release & Multi-Platform Build
+name: Rilis Windows
 
 on:
   workflow_dispatch:
@@ -11,24 +11,7 @@ jobs:
   build-tauri:
     permissions:
       contents: write
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - platform: 'windows-latest'
-            os-name: 'windows'
-            rust-target: 'x86_64-pc-windows-msvc'
-            args: ''
-          - platform: 'macos-latest'
-            os-name: 'macos-arm64'
-            rust-target: 'aarch64-apple-darwin'
-            args: '--target aarch64-apple-darwin'
-          - platform: 'ubuntu-22.04'
-            os-name: 'linux'
-            rust-target: 'x86_64-unknown-linux-gnu'
-            args: '--bundles deb,appimage'
-
-    runs-on: ${{ matrix.platform }}
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
@@ -43,26 +26,15 @@ jobs:
       - name: Setup Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.rust-target }}
-
-      - name: Install Linux dependencies (Ubuntu only)
-        if: matrix.platform == 'ubuntu-22.04'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev libxdo-dev librsvg2-dev patchelf build-essential curl wget file libssl-dev libdbus-1-dev cmake ffmpeg openssh-client libsecret-1-dev
+          targets: x86_64-pc-windows-msvc
 
       - name: Install npm dependencies
         run: npm ci
 
-      - name: Build native Whisper on Linux and macOS
-        if: runner.os != 'Windows'
-        shell: bash
-        run: bash scripts/build-whisper-unix.sh
-
       - name: Check frontend
         run: npm run typecheck
 
-      - name: Stage Flow2API runtime for target OS
+      - name: Stage Flow2API runtime for Windows
         env:
           FLOW2API_SOURCE: ${{ github.workspace }}/flow2api-src
         run: npm run flow2api:stage
@@ -73,8 +45,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: v__VERSION__
-          releaseName: 'De Story v__VERSION__'
-          releaseBody: 'Rilis multi-platform De Story v__VERSION__ (Windows .exe/.msi, macOS .dmg, Linux .deb/.AppImage).'
+          releaseName: 'Bara Studio v__VERSION__'
+          releaseBody: 'Bara Studio v__VERSION__ untuk Windows x64 (.exe dan .msi). Pengaturan SSH lebih rapi. Render multi-VPS mengirim segmen langsung lewat HTTPS privat InstaBox dan menggabungkan video secara bertahap untuk mengurangi beban RAM.'
           releaseDraft: true
           prerelease: false
-          args: ${{ matrix.args }}
+          args: --target x86_64-pc-windows-msvc --bundles nsis,msi

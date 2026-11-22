@@ -512,8 +512,10 @@ async fn flow_parallel_accounts(db: &DbPool, app: &AppHandle, video: bool) -> Re
     if settings["flow2apiMode"].as_str() == Some("external") { return Ok(1); }
     let selected = settings["flow2apiParallelAccounts"].as_u64().unwrap_or(1) as u32;
     let manager = flow2api_manager(app).ok_or("Flow2API internal belum siap")?;
-    let pool = crate::services::flow2api::account_pool(&manager.panel_info()?, Some(selected)).await?;
-    Ok(pool.limit(selected, video))
+    let pool = crate::services::flow2api::account_pool(&manager.panel_info()?, Some(selected), false).await?;
+    let limit = pool.limit(selected, video);
+    if limit == 0 { return Err("Tidak ada akun Flow siap untuk jenis media ini. Periksa kredit, kuota, sesi, dan status akun di pengaturan Flow.".into()); }
+    Ok(limit)
 }
 
 async fn acquire_flow_turn<'a>(
@@ -1447,6 +1449,7 @@ pub fn generate_clip_tts(
 
     let job = {
         let conn = db.lock().unwrap();
+        super::speko::validate_settings_language(&get_settings(&conn), &project.tts_provider, &project.language)?;
         insert_job(&conn, &project_id, "tts", &project.tts_provider, json!({}), Some(&clip_id), None)?
     };
 
@@ -1464,6 +1467,7 @@ pub fn generate_clip_tts(
             let p = get_project(&conn, &p_id).ok_or("Proyek tidak ditemukan")?;
             let s = get_settings(&conn);
             let prov = p.tts_provider.clone();
+            super::speko::validate_settings_language(&s, &prov, &p.language)?;
             let k = get_secret(&conn, &prov).unwrap_or_default();
             let m = if prov == "gemini" {
                 // No fallback model here: an empty value is reported to the user
@@ -1894,10 +1898,8 @@ pub async fn estimate_credits(
         return Some(json!({"credits":credits,"usd":null}));
     }
     if model_id.starts_with("flow:") {
-        return Some(json!({
-            "credits": 0,
-            "usd": 0.0
-        }));
+        return if kind == "video" { crate::services::flow2api::video_credit_estimate(model_id, seconds.unwrap_or(5.0)) }
+            else { Some(json!({"credits":0,"usd":null})) };
     }
 
     let sec = seconds.unwrap_or(5.0);

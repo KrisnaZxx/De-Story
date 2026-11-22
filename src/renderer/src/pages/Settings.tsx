@@ -48,6 +48,7 @@ import { errorText, relativeTime } from '../lib/format'
 import { useModels } from '../lib/useModels'
 import { applyTheme } from '../lib/theme'
 import { useApp } from '../store/app'
+import { SpekoModelPicker } from '../components/SpekoModelPicker'
 
 type Tab = 'services' | 'ssh' | 'general' | 'about'
 
@@ -309,7 +310,7 @@ function KeyForm({
           <Field label="Kredensial" className="flex-[1.3]">
             <input
               readOnly
-              value="Diurus otomatis oleh De Story"
+              value="Diurus otomatis oleh Bara Studio"
               aria-label="Kredensial Flow2API bawaan"
               className={cx(inputCls, 'h-11 cursor-default bg-paper italic text-muted text-sm')}
             />
@@ -763,10 +764,10 @@ function SpekoSection({ settings, status, onChanged, onSettings }: { settings: A
       <KeyForm provider="speko" name="Speko" status={status} help="Gunakan Router API key sk_speko_… dari dashboard Speko. Kunci disimpan terenkripsi di perangkat ini." link="https://speko.ai" linkLabel="Buka Speko" onChanged={onChanged} onSaved={(r) => { if (r.ok) { void tts.refresh(); void stt.refresh() } }} />
       {ready && <>
         <Field label="Model Speko TTS" hint="Hanya model streaming dengan waktu per kata. Pilih Speko TTS di Ide cerita untuk memakainya.">
-          <ModelPicker value={settings.spekoTtsModel} {...tts} onChange={async (id) => onSettings(await window.api.settings.set({ spekoTtsModel: id }))} onRefresh={() => void tts.refresh()} />
+          <SpekoModelPicker defaultLanguage={settings.defaultLanguage} value={settings.spekoTtsModel} {...tts} onChange={async (id) => onSettings(await window.api.settings.set({ spekoTtsModel: id }))} onRefresh={() => void tts.refresh()} />
         </Field>
         <Field label="Model Speko STT" hint="Hanya model batch dengan timestamp kata. Untuk audio Gemini, pilih Speko STT di tab Caption.">
-          <ModelPicker value={settings.spekoSttModel} {...stt} onChange={async (id) => onSettings(await window.api.settings.set({ spekoSttModel: id }))} onRefresh={() => void stt.refresh()} />
+          <SpekoModelPicker defaultLanguage={settings.defaultLanguage} value={settings.spekoSttModel} {...stt} onChange={async (id) => onSettings(await window.api.settings.set({ spekoSttModel: id }))} onRefresh={() => void stt.refresh()} />
         </Field>
         {!tts.loading && !tts.error && !tts.models.length && <p className="text-sm text-sun-ink">Akun ini belum menyediakan model TTS dengan waktu kata.</p>}
         {!stt.loading && !stt.error && !stt.models.length && <p className="text-sm text-sun-ink">Akun ini belum menyediakan model STT dengan timestamp kata.</p>}
@@ -799,6 +800,7 @@ function TtsSection({ settings, statusOf, onChanged, onSettings }: { settings: A
     { id: 'speko', name: 'Speko TTS', note: 'Model dengan waktu kata bawaan. Pilih model dari katalog akun Speko.', logo: 'speko', status: statusOf('speko') }
   ]
   const value = provider === 'gemini' ? settings.geminiTtsModel : provider === 'speko' ? settings.spekoTtsModel : settings.elevenModel
+  const Picker = provider === 'speko' ? SpekoModelPicker : ModelPicker
   return (
     <>
       <SectionTitle
@@ -831,9 +833,10 @@ function TtsSection({ settings, statusOf, onChanged, onSettings }: { settings: A
         {ready && (
           <div className="flex flex-col gap-1.5 border-t border-dashed border-line pt-4">
             <span className="text-sm font-semibold">Model suara</span>
-            <ModelPicker
+            <Picker
               value={value}
               models={models.models}
+              defaultLanguage={settings.defaultLanguage}
               loading={models.loading}
               error={models.error}
               fetchedAt={models.fetchedAt}
@@ -900,7 +903,7 @@ function HiggsfieldMcpConnection() {
       {(error || status?.error) && <p role="alert" className="text-[13px] text-bad-ink">{error || status?.error}</p>}
       <p className="text-[13px] leading-relaxed text-ink-2">
         Login lewat halaman resmi Higgsfield di browser, lalu kembali ke sini. Pada proyek, buka <strong>Model AI</strong> dan pilih model berlabel <strong>· MCP</strong> atau filter <strong>Higgsfield MCP</strong>.
-        {' '}Mode ini hanya memakai Unlimited; saat trial habis, generasi berhenti tanpa beralih ke kredit. Trial tidak diaktifkan otomatis oleh De Story.
+        {' '}Mode ini hanya memakai Unlimited; saat trial habis, generasi berhenti tanpa beralih ke kredit. Trial tidak diaktifkan otomatis oleh Bara Studio.
       </p>
       <p className="text-[12px] text-muted">Promo trial dapat diperpanjang menjadi langganan berbayar otomatis oleh Higgsfield. Periksa tanggal dan ketentuan di akun Anda.</p>
     </div>
@@ -988,7 +991,7 @@ function Flow2ApiSection({
           status={status}
           customUrl={settings.flow2apiBaseUrl || 'http://localhost:8000'}
           flow2apiMode={settings.flow2apiMode ?? 'bundled'}
-          help="De Story bisa menjalankan Flow2API sendiri, atau tersambung ke server flow2api yang kamu jalankan."
+          help="Bara Studio bisa menjalankan Flow2API sendiri, atau tersambung ke server flow2api yang kamu jalankan."
           hint={
             <>
               Menjalankan repositori{' '}
@@ -1024,7 +1027,7 @@ function Flow2ApiSection({
 }
 
 /**
- * Health of the Flow2API process De Story runs itself. This is deliberately
+ * Health of the Flow2API process Bara Studio runs itself. This is deliberately
  * separate from the token/captcha status badge above: a live backend can still
  * need a Google token before it can generate anything.
  */
@@ -1037,12 +1040,15 @@ function FlowParallelSettings({ settings, onSettings }: {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [failed, setFailed] = useState(false)
-  const [pool, setPool] = useState({ maxAccounts: 0, imageAccounts: 0, videoAccounts: 0 })
+  const [pool, setPool] = useState<Awaited<ReturnType<typeof window.api.flow2api.accountPool>>>({ maxAccounts: 0, imageAccounts: 0, videoAccounts: 0, accounts: [] })
+  const [loadingPool, setLoadingPool] = useState(false)
   const external = settings.flow2apiMode === 'external'
   useEffect(() => setCount(settings.flow2apiParallelAccounts ?? 1), [settings.flow2apiParallelAccounts])
-  const refreshPool = async (): Promise<void> => {
-    try { setPool(await window.api.flow2api.accountPool()) }
+  const refreshPool = async (refreshCredits = false): Promise<void> => {
+    setLoadingPool(true)
+    try { setPool(await window.api.flow2api.accountPool(refreshCredits)); setFailed(false); setMessage(refreshCredits ? 'Saldo akun diperbarui.' : '') }
     catch (error) { setFailed(true); setMessage(errorText(error)) }
+    finally { setLoadingPool(false) }
   }
   useEffect(() => { if (open && !external) void refreshPool() }, [open, external])
   return (
@@ -1056,9 +1062,11 @@ function FlowParallelSettings({ settings, onSettings }: {
           Tambahkan cookie tiap akun di Panel admin → Token Management dan aktifkan gambar serta video.
           Pengaturan ini juga berlaku untuk lembar karakter.
         </p>
-        {external && <p className="text-sm text-ink-2">Pilih Flow2API bawaan untuk mengatur multiakun dari De Story.</p>}
+        {external && <p className="text-sm text-ink-2">Pilih Flow2API bawaan untuk mengatur multiakun dari Bara Studio.</p>}
         <p className="text-sm text-ink-2">{pool.maxAccounts} akun aktif · {pool.imageAccounts} untuk gambar · {pool.videoAccounts} untuk video.</p>
-        <Button disabled={external || saving} onClick={() => void refreshPool()}>Perbarui daftar akun</Button>
+        <Button disabled={external || saving || loadingPool} loading={loadingPool} onClick={() => void refreshPool(true)}>Perbarui akun & saldo</Button>
+        {!!pool.accounts?.length && <div className="overflow-x-auto rounded-xl border border-line"><table className="w-full text-left text-sm"><thead className="bg-sand text-ink-2"><tr><th className="p-3">Akun</th><th className="p-3">Kredit tersedia</th><th className="p-3">Video terakhir</th></tr></thead><tbody>{pool.accounts.map(a => <tr key={a.id ?? a.email} className="border-t border-line"><td className="p-3"><span className="break-all">{a.email}</span><div className="mt-1 text-xs text-muted">{!a.active ? 'Nonaktif' : a.videoBlocked ? 'Kuota/kredit video habis · dilewati' : 'Aktif'}</div></td><td className="p-3 font-mono">{a.credits ?? 'Belum diketahui'}</td><td className="p-3">{a.lastVideo ? <><span>{a.lastVideo.used === null ? 'Pemakaian belum terkonfirmasi' : `${a.lastVideo.used} kredit (perubahan saldo)`}</span><div className="mt-1 text-xs text-muted">{a.lastVideo.model} · {new Date(a.lastVideo.checkedAt * 1000).toLocaleString('id-ID')}</div></> : 'Belum ada catatan'}</td></tr>)}</tbody></table></div>}
+        <p className="text-xs text-muted">Saldo mengikuti pembaruan terakhir. Pemakaian video dicatat dari saldo sebelum dan sesudah generate; aktivitas lain pada akun yang sama dapat memengaruhinya.</p>
         <Button disabled={external || saving} onClick={async () => {
           try {
             const panel = await window.api.flow2api.panelInfo()
@@ -1069,7 +1077,7 @@ function FlowParallelSettings({ settings, onSettings }: {
           <Select label="Akun Flow bersamaan" value={count} disabled={saving || external}
             options={[
               { value: 0, label: `Semua akun aktif (${pool.maxAccounts})` },
-              ...Array.from({ length: Math.max(1, pool.maxAccounts) }, (_, i) => ({ value: i + 1, label: `${i + 1} akun${i === 0 ? ' (default)' : ''}` }))
+              ...Array.from({ length: Math.max(1, count, pool.maxAccounts) }, (_, i) => ({ value: i + 1, label: `Hingga ${i + 1} akun${i === 0 ? ' (default)' : ''}` }))
             ]}
             onChange={async value => {
               setCount(value)
@@ -1117,7 +1125,7 @@ function Flow2ApiBackendStatus({ mode }: { mode: 'bundled' | 'external' }) {
       <p className="flex items-start gap-2.5 border-t border-dashed border-line pt-4 text-[13px] leading-relaxed text-ink-2">
         <Server className="mt-0.5 size-4 shrink-0" />
         <span>
-          De Story tetap menjalankan Flow2API bawaannya di latar belakang, tetapi generate memakai server yang kamu tetapkan di
+          Bara Studio tetap menjalankan Flow2API bawaannya di latar belakang, tetapi generate memakai server yang kamu tetapkan di
           atas.
         </span>
       </p>
@@ -1214,7 +1222,7 @@ function SecretRow({
 
 /**
  * A shortcut into Flow2API's own admin panel, where every CAPTCHA method is
- * configured. De Story deliberately does not duplicate those forms: the
+ * configured. Bara Studio deliberately does not duplicate those forms: the
  * panel is the single source of truth for tokens, captcha providers and the
  * extension route keys.
  */
@@ -1262,7 +1270,7 @@ function Flow2ApiPanelCard({ baseUrl, ready }: { baseUrl: string | null; ready: 
       </div>
       <p className="mt-2 text-[13px] leading-relaxed text-ink-2">
         Konfigurasi captcha — layanan solver berbayar, browser lokal, profil personal, remote browser, dan extension worker —
-        dilakukan di panel ini. De Story hanya menyalakan servernya dan membukakan panelnya.
+        dilakukan di panel ini. Bara Studio hanya menyalakan servernya dan membukakan panelnya.
       </p>
       <div className="mt-3 flex flex-col gap-2">
         <div className="flex items-center gap-2">
@@ -1454,7 +1462,7 @@ export function Settings() {
   const statusOf = (p: ApiProvider): KeyStatus | undefined => keys.find((k) => k.provider === p)
 
   const NAV: { id: Tab; label: string; icon: ReactNode }[] = [
-    { id: 'ssh', label: 'Setting SSH', icon: <Server className="size-[18px]" /> },
+    { id: 'ssh', label: 'Pengaturan SSH', icon: <Server className="size-[18px]" /> },
     { id: 'services', label: 'Layanan AI dan kunci', icon: <KeyRound className="size-[18px]" /> },
     { id: 'general', label: 'Umum', icon: <SlidersHorizontal className="size-[18px]" /> },
     { id: 'about', label: 'Tentang aplikasi', icon: <Info className="size-[18px]" /> }
@@ -1498,7 +1506,7 @@ export function Settings() {
                 <div>
                   <h1 className="font-display text-[34px] font-bold tracking-[-0.015em]">Layanan AI dan kunci</h1>
                   <p className="mt-2 max-w-[700px] text-[15px] text-ink-2">
-                    De Story memakai akun layanan milikmu sendiri. Kunci disimpan terenkripsi di komputer ini dan hanya dikirim langsung ke
+                    Bara Studio memakai akun layanan milikmu sendiri. Kunci disimpan terenkripsi di komputer ini dan hanya dikirim langsung ke
                     layanan yang bersangkutan.
                   </p>
                 </div>
@@ -1524,7 +1532,7 @@ export function Settings() {
                 </div>
                 <section className="flex flex-col gap-5 rounded-2xl border border-line bg-surface p-6">
                   <Field label="Tema aplikasi">
-                    <Select label="Tema aplikasi" value={settings.theme ?? 'dark'} options={[{ value: 'dark', label: 'Gelap · Graphite' }, { value: 'light', label: 'Terang · Pearl' }]} onChange={async (value) => { try { const next = await window.api.settings.set({ theme: value as AppSettings['theme'] }); applyTheme(next.theme); setSettings(next) } catch (e) { toast('error', errorText(e)) } }} className="max-w-[320px]" />
+                    <Select label="Tema aplikasi" value={settings.theme ?? 'dark'} options={[{ value: 'dark', label: 'Gelap · Bara' }, { value: 'light', label: 'Terang · Bara' }]} onChange={async (value) => { try { const next = await window.api.settings.set({ theme: value as AppSettings['theme'] }); applyTheme(next.theme); setSettings(next) } catch (e) { toast('error', errorText(e)) } }} className="max-w-[320px]" />
                   </Field>
                   <Field label="Bahasa default naskah dan suara">
                     <Select
@@ -1559,8 +1567,8 @@ export function Settings() {
             {tab === 'about' && (
               <section className="flex flex-col gap-3.5 rounded-2xl border border-line bg-surface p-6 text-[15px] leading-relaxed text-ink-2">
                 <div className="flex flex-col">
-                  <h1 className="font-display text-[34px] font-bold tracking-[-0.015em] text-ink">De Story</h1>
-                  <span className="text-sm font-medium text-muted">v1.3.1 · by KrisnaZxx</span>
+                  <h1 className="font-display text-[34px] font-bold tracking-[-0.015em] text-ink">Bara Studio</h1>
+                  <span className="text-sm font-medium text-muted">v1.5.2 · by KrisnaZxx</span>
                 </div>
                 <p>Semua proyek, gambar, video, dan suara disimpan di komputer ini.</p>
                 <p>

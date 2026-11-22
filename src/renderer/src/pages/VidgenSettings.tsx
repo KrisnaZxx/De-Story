@@ -17,7 +17,7 @@ export function VidgenSettings({ settings, onSettings }: { settings: AppSettings
   }
   const duplicate = (a: VidgenAccount): boolean => !!a.info?.user?.uid && accounts.some((b) => b.id !== a.id && b.info?.user?.uid === a.info?.user?.uid)
   const remove = async (a: VidgenAccount): Promise<void> => {
-    if (await confirmDialog({ title: 'Hapus akun Vidgen dari De Story?', body: `API key tersimpan untuk ${a.label} dihapus dari laptop. Hasil video proyek tetap tersimpan.`, confirm: 'Hapus akun', danger: true })) {
+    if (await confirmDialog({ title: 'Hapus akun Vidgen dari Bara Studio?', body: `API key tersimpan untuk ${a.label} dihapus dari laptop. Hasil video proyek tetap tersimpan.`, confirm: 'Hapus akun', danger: true })) {
       await run(a.id, async () => { setAccounts(await window.api.vidgen.remove(a.id)) })
     }
   }
@@ -47,7 +47,7 @@ export function VidgenSettings({ settings, onSettings }: { settings: AppSettings
         {duplicate(a) && <p className="text-sm text-sun-ink">Akun ini sama dengan key lain di daftar; tidak menambah kapasitas paralel.</p>}
         <div className="flex flex-wrap gap-2"><Button size="sm" loading={busy === a.id} disabled={!!busy} onClick={() => void run(a.id, async () => setAccounts(await window.api.vidgen.check(a.id)))}>Periksa akun</Button><Button size="sm" disabled={!!busy} onClick={() => { setEditing(a.id); setLabel(a.label); setKey('') }}>Edit</Button><Button size="sm" variant="danger" disabled={!!busy} onClick={() => void remove(a)}>Hapus</Button></div>
       </div>)}
-      <p className="text-sm text-muted">Hasil diunduh otomatis ke proyek. Membatalkan di De Story menghentikan penantian; pekerjaan yang sudah diterima Vidgen masih bisa selesai di dashboard mereka.</p>
+      <p className="text-sm text-muted">Hasil diunduh otomatis ke proyek. Membatalkan di Bara Studio menghentikan penantian; pekerjaan yang sudah diterima Vidgen masih bisa selesai di dashboard mereka.</p>
     </section>
     {message && <p role="alert" className="rounded-xl bg-bad-soft p-4 text-sm text-bad-ink">{message}</p>}
   </>

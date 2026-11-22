@@ -1,0 +1,23 @@
+{
+  "checkedAt": "2026-11-16",
+  "models": {
+    "soniox/tts-rt-v2": ["af","sq","ar","az","eu","be","bn","bs","bg","ca","zh","hr","cs","da","nl","en","et","fi","fr","gl","de","el","gu","he","hi","hu","id","it","ja","kn","kk","ko","lv","lt","mk","ms","ml","mr","no","fa","pl","pt","pa","ro","ru","sr","sk","sl","es","sw","sv","tl","ta","te","th","tr","uk","ur","vi","cy"],
+    "cartesia/sonic-3": ["en","de","es","fr","ja","pt","zh","hi","ko","it","nl","pl","ru","sv","tr","tl","bg","ro","ar","cs","el","fi","hr","ms","sk","da","ta","uk","hu","no","vi","bn","th","he","ka","id","te","gu","kn","ml","mr","pa"],
+    "cartesia/sonic-3.5": ["en","de","es","fr","ja","pt","zh","hi","ko","it","nl","pl","ru","sv","tr","tl","bg","ro","ar","cs","el","fi","hr","ms","sk","da","ta","uk","hu","no","vi","bn","th","he","ka","id","te","gu","kn","ml","mr","pa"],
+    "cartesia/sonic-3.6": ["en","de","es","fr","ja","pt","zh","hi","ko","it","nl","pl","ru","sv","tr","tl","bg","ro","ar","cs","el","fi","hr","ms","sk","da","ta","uk","hu","no","vi","bn","th","he","ka","id","te","gu","kn","ml","mr","pa","or","ur"],
+    "elevenlabs/eleven_flash_v2": ["en"],
+    "elevenlabs/eleven_flash_v2_5": ["en","ja","zh","de","hi","fr","ko","pt","it","es","id","nl","tr","fil","pl","sv","bg","ro","ar","cs","el","fi","hr","ms","sk","da","ta","uk","ru","hu","no","vi"],
+    "elevenlabs/eleven_multilingual_v2": ["en","ja","zh","de","hi","fr","ko","pt","it","es","id","nl","tr","fil","pl","sv","bg","ro","ar","cs","el","fi","hr","ms","sk","da","ta","uk","ru"],
+    "munsit/munsit-en-ar": ["en","ar"],
+    "munsit/munsit": ["ar"],
+    "gemini/gemini-3.5-transcribe": ["id","en","ms","jv","es","ar"]
+  },
+  "sources": [
+    "https://docs.soniox.com/tts/concepts/supported-languages",
+    "https://docs.cartesia.ai/build-with-cartesia/tts-models/older-models",
+    "https://docs.cartesia.ai/build-with-cartesia/tts-models/latest",
+    "https://elevenlabs.io/docs/overview/models/",
+    "https://docs.munsit.com/speech-to-text/get-started",
+    "https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/gemini/3-5-transcribe"
+  ]
+}

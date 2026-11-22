@@ -13,12 +13,13 @@ pub struct FlowAccountPool {
     pub max_accounts: usize,
     pub image_accounts: usize,
     pub video_accounts: usize,
+    pub accounts: Vec<Value>,
 }
 
 impl FlowAccountPool {
     pub fn limit(&self, selected: u32, video: bool) -> usize {
         let available = if video { self.video_accounts } else { self.image_accounts };
-        if selected == 0 { available.max(1) } else { available.min(selected as usize).max(1) }
+        if selected == 0 { available } else { available.min(selected as usize) }
     }
 }
 
@@ -29,13 +30,16 @@ fn summarize_accounts(accounts: &[Value]) -> FlowAccountPool {
     for a in accounts.iter().filter(|a| a["is_active"] == true) {
         let Some(email) = a["email"].as_str().filter(|v| !v.is_empty()) else { continue };
         let email = email.to_lowercase();
-        if a["image_enabled"] == true { images.insert(email.clone()); all.insert(email.clone()); }
-        if a["video_enabled"] == true { videos.insert(email.clone()); all.insert(email); }
+        if a["image_enabled"] == true && a["image_quota_blocked"] != true { images.insert(email.clone()); all.insert(email.clone()); }
+        if a["video_enabled"] == true && a["video_quota_blocked"] != true { videos.insert(email.clone()); all.insert(email); }
     }
-    FlowAccountPool { max_accounts: all.len(), image_accounts: images.len(), video_accounts: videos.len() }
+    let accounts = accounts.iter().map(|a| json!({"id":a["id"],"email":a["email"],"credits":a["credits"],
+        "active":a["is_active"],"imageBlocked":a["image_quota_blocked"] == true,"videoBlocked":a["video_quota_blocked"] == true,
+        "lastVideo":a["last_video_credits"]})).collect();
+    FlowAccountPool { max_accounts: all.len(), image_accounts: images.len(), video_accounts: videos.len(), accounts }
 }
 
-pub async fn account_pool(info: &crate::flow2api_runtime::Flow2ApiPanelInfo, selected: Option<u32>) -> Result<FlowAccountPool, String> {
+pub async fn account_pool(info: &crate::flow2api_runtime::Flow2ApiPanelInfo, selected: Option<u32>, refresh: bool) -> Result<FlowAccountPool, String> {
     // Several queued media jobs can discover a changed account pool together.
     static CONFIG_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
     let _guard = CONFIG_LOCK.lock().await;
@@ -47,16 +51,30 @@ pub async fn account_pool(info: &crate::flow2api_runtime::Flow2ApiPanelInfo, sel
         .json().await.map_err(|_| "Respons login Flow2API tidak valid")?;
     let auth = login["token"].as_str().ok_or("Token panel Flow2API tidak tersedia")?;
     let result = async {
-        let accounts: Vec<Value> = client.get(format!("{}/api/tokens", info.base_url)).bearer_auth(auth)
+        let mut accounts: Vec<Value> = client.get(format!("{}/api/tokens", info.base_url)).bearer_auth(auth)
             .send().await.map_err(|_| "Gagal membaca akun Flow")?
             .error_for_status().map_err(|_| "Gagal membaca akun Flow")?
             .json().await.map_err(|_| "Daftar akun Flow tidak valid")?;
+        if refresh {
+            use futures_util::StreamExt;
+            let ids: Vec<u64> = accounts.iter().filter(|a| a["is_active"] == true).filter_map(|a| a["id"].as_u64()).collect();
+            let results = futures_util::stream::iter(ids).map(|id| {
+                let client = &client;
+                async move {
+                    let response = client.post(format!("{}/api/tokens/{id}/refresh-credits", info.base_url)).bearer_auth(auth)
+                        .send().await.map_err(|_| "Gagal memperbarui saldo akun Flow")?.error_for_status().map_err(|_| "Saldo sebagian akun gagal diperbarui; periksa sesi Flow")?;
+                    response.json::<Value>().await.map_err(|_| "Respons saldo Flow tidak valid")?;
+                    Ok::<(), &str>(())
+                }
+            }).buffer_unordered(3).collect::<Vec<_>>().await;
+            for result in results { result?; }
+            accounts = client.get(format!("{}/api/tokens", info.base_url)).bearer_auth(auth).send().await
+                .map_err(|_| "Daftar saldo Flow gagal dimuat")?.error_for_status().map_err(|_| "Daftar saldo Flow gagal dimuat")?
+                .json().await.map_err(|_| "Daftar saldo Flow tidak valid")?;
+        }
         let pool = summarize_accounts(&accounts);
         if let Some(count) = selected {
-            if count > 1 && count as usize > pool.max_accounts {
-                return Err(format!("Hanya {} akun Flow aktif. Pilih Semua akun aktif atau tambahkan akun di Token Management.", pool.max_accounts));
-            }
-            let browsers = if count == 0 { pool.max_accounts.max(1) } else { count as usize };
+            let browsers = if count == 0 { pool.max_accounts.max(1) } else { pool.max_accounts.min(count as usize).max(1) };
             let mut config: Value = client.get(format!("{}/api/captcha/config", info.base_url)).bearer_auth(auth)
                 .send().await.map_err(|_| "Gagal membaca konfigurasi Flow")?
                 .error_for_status().map_err(|_| "Gagal membaca konfigurasi Flow")?
@@ -750,6 +768,21 @@ fn video_target_model(raw_model: &str, duration_sec: f64, aspect_ratio: &str) ->
     target_model
 }
 
+pub fn video_credit_estimate(model: &str, seconds: f64) -> Option<Value> {
+    // Google's published 2026-11-16 rates; use the non-Ultra upper bound for mixed pools.
+    let raw = model.trim_start_matches("flow:");
+    let target = video_target_model(raw, seconds, "16:9");
+    let duration = Regex::new(r"-(\d+)s-").ok()?.captures(&target)?.get(1)?.as_str().parse::<u32>().ok()?;
+    let (credits, minimum) = match raw {
+        "omni-1.2-flash" => (duration * 3, duration * 3),
+        "omni-1.1-flash" => { let n = match duration { 4 => 7, 6 => 10, 8 => 12, 10 => 15, _ => return None }; (n, n) },
+        "veo-3.1-fast" => (20, 10),
+        "veo-3.1-lite" => (10, 5),
+        _ => return None,
+    };
+    Some(json!({"credits":credits,"minimumCredits":minimum,"usd":null,"source":"https://support.google.com/flow/answer/16526234?hl=en","checkedAt":"2026-11-16"}))
+}
+
 pub async fn generate_video(
     base_url: &str,
     key: Option<&str>,
@@ -856,6 +889,28 @@ mod tests {
         assert_eq!(pool.limit(0, true), 7);
         assert_eq!(pool.limit(12, true), 7);
         assert_eq!(pool.limit(12, false), 12);
+    }
+
+    #[test]
+    fn exhausted_accounts_reduce_the_pool_and_credentials_never_reach_the_ui() {
+        let mut accounts: Vec<Value> = (0..5).map(|i| json!({"id":i,"email":format!("a{i}@example.test"),"credits":0,
+            "is_active":true,"image_enabled":true,"video_enabled":true,"st":"private-cookie"})).collect();
+        accounts[2]["video_quota_blocked"] = json!(true);
+        let pool = summarize_accounts(&accounts);
+        assert_eq!(pool.limit(5, true), 4);
+        assert_eq!(pool.limit(5, false), 5); // Zero balance alone does not exclude free images.
+        assert!(!serde_json::to_string(&pool).unwrap().contains("private-cookie"));
+        for a in &mut accounts { a["video_quota_blocked"] = json!(true); }
+        assert_eq!(summarize_accounts(&accounts).limit(5, true), 0);
+    }
+
+    #[test]
+    fn flow_video_estimates_use_actual_generated_duration_and_never_report_free_video() {
+        assert_eq!(video_credit_estimate("flow:omni-1.2-flash", 5.1).unwrap()["credits"], 18);
+        assert_eq!(video_credit_estimate("flow:omni-1.1-flash", 6.0).unwrap()["credits"], 10);
+        assert_eq!(video_credit_estimate("flow:veo-3.1-fast", 6.0).unwrap()["credits"], 20);
+        assert_eq!(video_credit_estimate("flow:veo-3.1-lite", 4.0).unwrap()["minimumCredits"], 5);
+        assert!(video_credit_estimate("flow:future-model", 5.0).is_none());
     }
 
     #[test]

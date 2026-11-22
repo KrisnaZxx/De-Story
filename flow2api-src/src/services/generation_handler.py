@@ -1625,7 +1625,25 @@ class GenerationHandler:
         )
         return token_obj is not None
 
-    async def handle_generation(
+    async def _video_credit_balance(self, token_id):
+        try:
+            return await asyncio.wait_for(self.token_manager.refresh_credits(token_id), timeout=10)
+        except Exception:
+            return None
+
+    async def handle_generation(self, model, prompt, images=None, stream=False,
+                                base_url_override=None, video_media_id=None) -> AsyncGenerator:
+        # Release the previous account's reservation before trying a different one.
+        attempted = set()
+        while True:
+            attempt = {"attempted": attempted, "retry": False}
+            async for chunk in self._handle_generation_once(model, prompt, images, stream,
+                    base_url_override, video_media_id, attempt):
+                yield chunk
+            if not attempt["retry"]:
+                return
+
+    async def _handle_generation_once(
         self,
         model: str,
         prompt: str,
@@ -1633,6 +1651,7 @@ class GenerationHandler:
         stream: bool = False,
         base_url_override: Optional[str] = None,
         video_media_id: Optional[str] = None,
+        _attempt: Optional[dict] = None,
     ) -> AsyncGenerator:
         """统一生成入口
 
@@ -1718,22 +1737,25 @@ class GenerationHandler:
         token_select_started_at = time.time()
 
         reserve_media_slot = is_embedded() and self.concurrency_manager is not None
-        if generation_type == "image":
+        excluded = _attempt["attempted"] if _attempt else set()
+        slot_deadline = time.monotonic() + (90 if generation_type == "image" else 300)
+        while True:
             token = await self.load_balancer.select_token(
-                for_image_generation=True,
+                for_image_generation=generation_type == "image",
+                for_video_generation=generation_type == "video",
                 model=model,
                 reserve=reserve_media_slot,
                 enforce_concurrency_filter=reserve_media_slot,
                 track_pending=not reserve_media_slot,
+                exclude_ids=excluded,
             )
-        else:
-            token = await self.load_balancer.select_token(
-                for_video_generation=True,
-                model=model,
-                reserve=reserve_media_slot,
-                enforce_concurrency_filter=reserve_media_slot,
-                track_pending=not reserve_media_slot,
-            )
+            if token or not reserve_media_slot or time.monotonic() >= slot_deadline:
+                break
+            if not await self.load_balancer.has_busy_account(generation_type == "video", model, excluded):
+                break
+            if stream:
+                yield self._create_stream_chunk("Menunggu akun Flow yang siap menyelesaikan pekerjaan lain…\n")
+            await asyncio.sleep(1)
         perf_trace["token_select_ms"] = int(
             (time.time() - token_select_started_at) * 1000
         )
@@ -1870,6 +1892,9 @@ class GenerationHandler:
                 ):
                     yield chunk
             else:  # video
+                response_state["credits_before"] = await self._video_credit_balance(token.id)
+                if isinstance(response_state["credits_before"], int):
+                    token.credits = response_state["credits_before"]
                 debug_logger.log_info(f"[GENERATION] 开始视频生成流程...")
                 async for chunk in self._handle_video_generation(
                     token,
@@ -1893,6 +1918,7 @@ class GenerationHandler:
             # 6. 记录使用
             if not generation_result.get("success"):
                 error_msg = generation_result.get("error_message") or "生成未成功完成"
+                self.load_balancer.mark_quota_exhausted(token, generation_type, error_msg)
                 debug_logger.log_warning(
                     f"[GENERATION] 生成未成功，不扣次数: {error_msg}"
                 )
@@ -1923,6 +1949,13 @@ class GenerationHandler:
                     yield self._create_error_response(error_msg, status_code=500)
                 return
 
+            if generation_type == "video":
+                before = response_state.get("credits_before")
+                after = await self._video_credit_balance(token.id)
+                response_state["credits"] = {"before": before, "after": after,
+                    "used": before - after if isinstance(before, int) and isinstance(after, int) and before >= after else None,
+                    "model": model, "checkedAt": time.time()}
+
             is_video = generation_type == "video"
             await self.token_manager.record_usage(token.id, is_video=is_video)
 
@@ -1948,6 +1981,8 @@ class GenerationHandler:
                 "prompt": prompt_for_log,
                 "performance": perf_trace,
             }
+            if "credits" in response_state:
+                response_data["credits"] = response_state["credits"]
 
             # 添加生成的URL（如果有）
             if response_state.get("url"):
@@ -2015,6 +2050,18 @@ class GenerationHandler:
             raise
         except Exception as e:
             error_msg = f"生成失败: {str(e)}"
+            from .flow_quota import is_quota_error
+            if token and is_quota_error(e):
+                self.load_balancer.mark_quota_exhausted(token, generation_type, e)
+                if _attempt is not None and token.id not in _attempt["attempted"] and not getattr(e, "submission_uncertain", False) and not getattr(e, "outcome_unknown", False):
+                    _attempt["attempted"].add(token.id)
+                    _attempt["retry"] = True
+                    await self._log_request(token.id, request_operation, request_payload,
+                        {"error": "Kredit/kuota habis; beralih akun"}, 429, time.time() - start_time,
+                        log_id=request_log_state.get("id"), status_text="failed", progress=request_log_state.get("progress", 0))
+                    if stream:
+                        yield self._create_stream_chunk("Kredit/kuota akun habis; mencoba akun Flow lain…\n")
+                    return
             debug_logger.log_error(f"[GENERATION] 生成失败: {error_msg}")
             if token:
                 if self._should_count_token_error(e):
@@ -2868,7 +2915,7 @@ class GenerationHandler:
                 await self.token_manager.record_usage(token.id, is_video=True)
                 await self.token_manager.record_success(token.id)
                 if getattr(self, "load_balancer", None):
-                    self.load_balancer.clear_quota_cooldown(token.id, model_key)
+                    self.load_balancer.clear_quota_cooldown(token.id, "video")
                 if self.proxy_manager and hasattr(
                     self.proxy_manager,
                     "record_attempt_success",

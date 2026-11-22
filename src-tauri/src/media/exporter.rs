@@ -24,7 +24,7 @@ pub const TRANSITION_SEC: f64 = 0.4;
 #[serde(rename_all = "camelCase")]
 pub struct ExportOptions {
     pub fps: u32,
-    pub resolution: u32, // 720, 1080, 2160
+    pub resolution: u32, // 720, 1080, 1440, 2160
     pub burn_captions: bool,
     pub write_srt: bool,
     pub duck_music: bool,
@@ -35,6 +35,8 @@ pub struct ExportOptions {
     pub target: String,
     #[serde(default)]
     pub ssh_profile: String,
+    #[serde(default)]
+    pub ssh_profiles: Vec<String>,
     #[serde(default)]
     pub delete_after_download: bool,
 }
@@ -49,6 +51,7 @@ pub fn output_size(aspect: &str, res: u32) -> OutputSize {
     let long = match res {
         720 => 1280,
         1080 => 1920,
+        1440 => 2560,
         2160 => 3840,
         _ => 1920,
     };
@@ -175,15 +178,13 @@ where
             return Ok(());
         }
     }
-    let mut cmd = if let Some(session) = remote.as_mut() {
-        session.prepare(args, cwd, total_sec.unwrap_or(1.0), token).await?
-    } else {
-        let mut command = Command::new(ffmpeg_path(resource_dir));
-        command.arg("-hide_banner").arg("-y")
-            .args(["-filter_threads", "2", "-filter_complex_threads", "2"])
-            .args(args).current_dir(cwd);
-        command
-    };
+    if let Some(session) = remote.as_mut() {
+        return session.run(args, cwd, total_sec.unwrap_or(1.0), token, on_progress).await;
+    }
+    let mut cmd = Command::new(ffmpeg_path(resource_dir));
+    cmd.arg("-hide_banner").arg("-y")
+        .args(["-filter_threads", "2", "-filter_complex_threads", "2"])
+        .args(args).current_dir(cwd);
     cmd.kill_on_drop(true).stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::piped());
     #[cfg(target_os = "windows")]
     cmd.creation_flags(0x08000000);
@@ -210,12 +211,6 @@ where
                         }
                         tail.push(line.clone());
 
-                        if remote.is_some() {
-                            if let Some(fraction) = line.strip_prefix("de_story_fraction=").and_then(|v| v.parse::<f64>().ok()) {
-                                on_progress(fraction.clamp(0.0, 1.0));
-                            }
-                            continue;
-                        }
                         if let Some(tot) = total_sec {
                             if tot > 0.0 {
                                 if let Some(sec) = parse_time_sec(&line) {
@@ -237,12 +232,6 @@ where
         return Err("Dibatalkan".into());
     }
     if status.success() {
-        if let Some(session) = remote.as_ref() {
-            if let Some(destination) = args.last().filter(|s| Path::new(s).is_absolute()) {
-                on_progress(1.0);
-                session.download(Path::new(destination), token).await?;
-            }
-        }
         Ok(())
     } else {
         let msg = tail.join("\n");
@@ -250,12 +239,83 @@ where
     }
 }
 
+#[derive(Clone)]
 pub struct SegmentPlan {
     pub clip: ClipRow,
     pub start: f64,
     pub own: f64,
     pub overlap: f64,
     pub transition: String,
+}
+
+pub fn export_profiles(opts: &ExportOptions) -> Result<Vec<String>, String> {
+    let mut profiles = Vec::new();
+    for profile in std::iter::once(&opts.ssh_profile).chain(opts.ssh_profiles.iter()) {
+        crate::media::ssh_export::validate_profile(profile)?;
+        if !profiles.iter().any(|p: &String| p.eq_ignore_ascii_case(profile)) { profiles.push(profile.clone()); }
+    }
+    Ok(profiles)
+}
+
+fn distribute_segments(segs: &[SegmentPlan], nodes: usize) -> Vec<Vec<usize>> {
+    let count = nodes.min(segs.len());
+    let mut groups = Vec::new();
+    let mut cursor = 0;
+    let mut remaining: f64 = segs.iter().map(|s|s.own + s.overlap).sum();
+    for node in 0..count {
+        let target = remaining / (count - node) as f64;
+        let start = cursor;
+        let mut duration = 0.0;
+        while cursor < segs.len() - (count - node - 1) {
+            let next = segs[cursor].own + segs[cursor].overlap;
+            if cursor > start && node + 1 < count && (duration + next - target).abs() > (duration - target).abs() { break; }
+            duration += next;
+            cursor += 1;
+        }
+        groups.push((start..cursor).collect());
+        remaining -= duration;
+    }
+    groups
+}
+
+fn merged_plan(segs: &[SegmentPlan]) -> SegmentPlan {
+    let mut plan = segs[0].clone();
+    plan.own = segs.iter().map(|s|s.own).sum();
+    plan.overlap = segs.last().unwrap().overlap;
+    plan.transition = segs.last().unwrap().transition.clone();
+    plan
+}
+
+async fn merge_video_parts(files: Vec<String>, segs: Vec<SegmentPlan>, group: usize, opts: &ExportOptions,
+    tmp: &Path, token: &CancellationToken, resource_dir: Option<&Path>, remote: &mut Option<SshExport>) -> Result<(String, SegmentPlan),String> {
+    // Bound decoder/frame buffers instead of opening the entire movie in one filter graph.
+    let plan = merged_plan(&segs);
+    let mut parts: Vec<(String,SegmentPlan)> = files.into_iter().zip(segs).collect();
+    let mut level = 0;
+    while parts.len() > 1 {
+        let mut next = Vec::new();
+        for (batch, chunk) in parts.chunks(4).enumerate() {
+            if chunk.len() == 1 { next.push(chunk[0].clone()); continue; }
+            let mut plans: Vec<SegmentPlan> = chunk.iter().map(|(_,s)|s.clone()).collect();
+            let merged = merged_plan(&plans);
+            for p in &mut plans { p.start -= merged.start; }
+            let (graph, output) = video_graph(&plans,opts.fps);
+            let graph_path = tmp.join(format!("merge_{group}_{level}_{batch}.txt"));
+            fs::write(&graph_path,graph.join(";\n")).map_err(|e|e.to_string())?;
+            let name = if parts.len() <= 4 { format!("seg_{:06}.mp4",100000+group) } else { format!("merge_{group}_{level}_{batch}.mp4") };
+            let mut args = Vec::new();
+            for (file,_) in chunk { args.extend(["-threads".into(),"1".into(),"-i".into(),file.clone()]); }
+            args.extend(["-filter_complex_script".into(),graph_path.to_string_lossy().to_string(),"-map".into(),output,
+                "-an".into(),"-c:v".into(),"libx264".into(),"-threads".into(),"2".into(),"-preset".into(),"veryfast".into(),
+                "-crf".into(),"17".into(),"-pix_fmt".into(),"yuv420p".into(),"-r".into(),opts.fps.to_string(),
+                "-t".into(),format!("{:.6}",merged.own + merged.overlap),name.clone()]);
+            run_ffmpeg(&args,tmp,token,None,|_|{},resource_dir,remote).await?;
+            next.push((name,merged));
+        }
+        parts = next;
+        level += 1;
+    }
+    Ok((parts.pop().ok_or("Tidak ada klip untuk digabung")?.0,plan))
 }
 
 pub fn plan_segments(clips: &[ClipRow], fps: u32) -> Vec<SegmentPlan> {
@@ -348,6 +408,22 @@ fn video_graph(segs: &[SegmentPlan], fps: u32) -> (Vec<String>, String) {
 fn find_asset<'a>(bundle: &'a ProjectBundle, id: Option<&str>) -> Option<&'a AssetRow> {
     let aid = id?;
     bundle.assets.iter().find(|a| a.id == aid)
+}
+
+fn narration_graph(segs: &[SegmentPlan], inputs: &[Option<usize>]) -> Vec<String> {
+    assert_eq!(segs.len(), inputs.len());
+    if inputs.iter().all(Option::is_none) { return Vec::new(); }
+    // Delaying every voice to its absolute start allocates silence buffers for the whole timeline.
+    let mut graph: Vec<String> = segs.iter().zip(inputs).enumerate().map(|(i, (seg, input))| {
+        let source = match input {
+            Some(index) => format!("[{index}:a]aresample=48000,aformat=sample_fmts=fltp:channel_layouts=stereo,apad"),
+            None => "anullsrc=r=48000:cl=stereo".into(),
+        };
+        format!("{source},atrim=duration={:.6},asetpts=PTS-STARTPTS[a{i}]", seg.own)
+    }).collect();
+    let voices = (0..segs.len()).map(|i|format!("[a{i}]")).collect::<String>();
+    graph.push(format!("{voices}concat=n={}:v=0:a=1[voice]", segs.len()));
+    graph
 }
 
 fn image_overlay_filters(o: &Value, size: &OutputSize, total: f64, input: usize, k: usize, video: &str) -> [String; 2] {
@@ -495,6 +571,66 @@ pub async fn render_project(
     result
 }
 
+async fn render_distributed_segments(
+    ctx: &TaskCtx, bundle: &ProjectBundle, segs: &[SegmentPlan], opts: &ExportOptions,
+    size: &OutputSize, tmp: &Path, resource_dir: Option<&Path>, primary: &SshExport,
+) -> Result<(Vec<String>, Vec<SegmentPlan>), String> {
+    use futures_util::StreamExt;
+    let profiles = export_profiles(opts)?;
+    let groups = distribute_segments(segs, profiles.len());
+    let mut nodes = Vec::new();
+    let mut files = Vec::new();
+    let mut video_plans = Vec::new();
+    for (node, indices) in groups.iter().enumerate() {
+        ctx.progress(0.03, Some(&format!("Menyiapkan VPS {} · {} klip", profiles[node], indices.len())));
+        let session = SshExport::new(&profiles[node], &uuid::Uuid::new_v4().to_string(), tmp,
+            &format!("{} · bagian {} dari {}", bundle.project.title, node + 1, groups.len()), false, &ctx.token).await?;
+        session.require_direct(primary,&ctx.token).await?;
+        let mut remote = Some(session);
+        let mut outputs = Vec::new();
+        for &index in indices {
+            let name = render_segment(bundle, &segs[index], index, opts, size, tmp, &ctx.token, resource_dir, &mut remote).await?;
+            outputs.push(name);
+        }
+        let plans = indices.iter().map(|&i|segs[i].clone()).collect();
+        let (file,plan) = merge_video_parts(outputs,plans,node,opts,tmp,&ctx.token,resource_dir,&mut remote).await?;
+        files.push(file.clone());
+        video_plans.push(plan);
+        let outputs = vec![file];
+        nodes.push((profiles[node].clone(), remote.unwrap(), outputs));
+    }
+    primary.prepare_receiver(&ctx.token).await?;
+    ctx.set_remote(&serde_json::json!({"primary":opts.ssh_profile,"nodes":nodes.iter().map(|(profile,session,_)|serde_json::json!({"profile":profile,"id":session.id()})).collect::<Vec<_>>()} ).to_string());
+    let weights: Vec<f64> = groups.iter().map(|indices|indices.iter().map(|&i|segs[i].own + segs[i].overlap).sum()).collect();
+    let total: f64 = weights.iter().sum();
+    let progress = Arc::new(std::sync::Mutex::new(vec![0.0; nodes.len()]));
+    let cancel = ctx.token.child_token();
+    let mut pending = futures_util::stream::FuturesUnordered::new();
+    for (node, (profile, session, outputs)) in nodes.iter().enumerate() {
+        let state = progress.clone();
+        let weights = &weights;
+        let token = &cancel;
+        pending.push(async move {
+            session.run_segments(outputs, tmp, primary, token, |fraction| {
+                let combined = {let mut values=state.lock().unwrap(); values[node]=fraction;
+                    values.iter().zip(weights).map(|(value,weight)|value * weight).sum::<f64>() / total.max(0.001)};
+                ctx.progress(0.08 + 0.56 * combined, Some(&format!("{} · {profile}", if fraction >= 1.0 { "Memindahkan bagian langsung ke VPS utama" } else { "Merender dan menggabungkan bagian di VPS" })));
+            }).await.map_err(|e| format!("VPS {profile}: {e}"))
+        });
+    }
+    let mut failed = None;
+    while let Some(result) = pending.next().await {
+        if let Err(error) = result { if failed.is_none() { failed=Some(error); cancel.cancel(); } }
+    }
+    drop(pending);
+    if let Some(error) = failed {
+        futures_util::future::join_all(nodes.iter().map(|(_,session,_)|session.cancel())).await;
+        return Err(error);
+    }
+    ctx.progress(0.65, Some("Semua klip selesai dan diverifikasi; menyiapkan penggabungan di VPS utama"));
+    Ok((files,video_plans))
+}
+
 async fn render_project_inner(
     ctx: &TaskCtx,
     bundle: &ProjectBundle,
@@ -512,12 +648,16 @@ async fn render_project_inner(
     let segs = plan_segments(&clips, opts.fps);
     let total: f64 = segs.iter().map(|s| s.own).sum();
 
-    // 1. Sequential segment rendering (silent video segments)
+    // 1. Silent segments; shared timeline plans also preserve cross-node overlaps.
     let segs_len = segs.len();
+    let mut video_segs = segs.clone();
     let mut files = vec![String::new(); segs_len];
 
     let mut done = 0usize;
-    for i in 0..segs_len {
+    let distributed = remote.is_some() && segs_len > 1 && export_profiles(opts)?.len() > 1;
+    if distributed {
+        (files,video_segs) = render_distributed_segments(ctx, bundle, &segs, opts, size, tmp, resource_dir, remote.as_ref().unwrap()).await?;
+    } else { for i in 0..segs_len {
         if ctx.token.is_cancelled() {
             return Err("Dibatalkan".into());
         }
@@ -527,6 +667,11 @@ async fn render_project_inner(
         done += 1;
         let p = 0.03 + if remote.is_some() { 0.05 } else { 0.60 } * (done as f64 / segs_len as f64);
         ctx.progress(p, Some(&format!("Merender klip {} dari {}", done, segs_len)));
+    }}
+    if files.len() > 4 {
+        ctx.progress(if distributed {0.65} else if remote.is_some() {0.07} else {0.64},Some("Menggabungkan video per kelompok kecil agar RAM tetap terkendali"));
+        let (file,plan) = merge_video_parts(files,video_segs,90000,opts,tmp,&ctx.token,resource_dir,remote).await?;
+        files=vec![file]; video_segs=vec![plan];
     }
 
     // 2. Captions & Overlays
@@ -608,11 +753,12 @@ async fn render_project_inner(
     // 3. One ffmpeg pass: transitions + overlays + captions + audio mix
     let mut args: Vec<String> = Vec::new();
     for f in &files {
+        args.extend(["-threads".to_string(), "1".to_string()]);
         args.push("-i".to_string());
         args.push(f.clone());
     }
 
-    let (mut graph, mut v) = video_graph(&segs, opts.fps);
+    let (mut graph, mut v) = video_graph(&video_segs, opts.fps);
 
     // Logos / image overlays
     for (k, (o, p)) in image_overlays.iter().enumerate() {
@@ -631,31 +777,23 @@ async fn render_project_inner(
     let mut input_index = files.len() + image_overlays.len();
     let mut voices = Vec::new();
 
-    for (i, s) in segs.iter().enumerate() {
+    for s in &segs {
         if let Some(audio) = find_asset(bundle, s.clip.audio_asset_id.as_deref()) {
             let p = asset_abs_path(&bundle.project.id, &audio.local_path);
             args.push("-i".to_string());
             args.push(p.to_string_lossy().to_string());
 
-            let ms = (s.start * 1000.0).round() as i64;
-            graph.push(format!(
-                "[{input_index}:a]aresample=48000,aformat=channel_layouts=stereo,adelay={ms}|{ms}[a{i}]"
-            ));
-            voices.push(format!("[a{i}]"));
+            voices.push(Some(input_index));
             input_index += 1;
-        }
+        } else { voices.push(None); }
     }
 
     let music_aid = bundle.project.editor.get("musicAssetId").and_then(|x| x.as_str());
     let music = find_asset(bundle, music_aid);
     let mut aout: Option<String> = None;
 
-    if !voices.is_empty() {
-        graph.push(format!(
-            "{voices_inputs}amix=inputs={count}:normalize=0:dropout_transition=0[voice]",
-            voices_inputs = voices.join(""),
-            count = voices.len()
-        ));
+    if voices.iter().any(Option::is_some) {
+        graph.extend(narration_graph(&segs, &voices));
         aout = Some("[voice]".to_string());
     }
 
@@ -712,7 +850,7 @@ async fn render_project_inner(
         n += 1;
     }
 
-    ctx.progress(if remote.is_some() { 0.08 } else { 0.64 }, Some(if remote.is_some() { "Mengunggah paket dan merender di VPS" } else { "Menggabungkan klip, suara, dan caption" }));
+    ctx.progress(if distributed { 0.66 } else if remote.is_some() { 0.08 } else { 0.64 }, Some(if distributed { "Mengirim klip selesai ke VPS utama untuk penggabungan" } else if remote.is_some() { "Mengunggah paket dan merender di VPS" } else { "Menggabungkan klip, suara, dan caption" }));
 
     let crf = if opts.resolution == 2160 { "20" } else { "19" };
     let mut final_args = args;
@@ -725,6 +863,8 @@ async fn render_project_inner(
         "[aout]".to_string(),
         "-c:v".to_string(),
         "libx264".to_string(),
+        "-threads".to_string(),
+        "2".to_string(),
         "-preset".to_string(),
         "medium".to_string(),
         "-crf".to_string(),
@@ -750,7 +890,7 @@ async fn render_project_inner(
         &ctx.token,
         Some(total),
         |f| {
-            ctx.progress(if opts.target == "ssh" { 0.08 + 0.90 * f } else { 0.64 + 0.34 * f }, Some(if opts.target == "ssh" && f >= 1.0 { "Mengunduh video hasil dari VPS" } else { "Menggabungkan klip, suara, dan caption" }));
+            ctx.progress(if distributed { 0.66 + 0.32 * f } else if opts.target == "ssh" { 0.08 + 0.90 * f } else { 0.64 + 0.34 * f }, Some(if opts.target == "ssh" && f >= 1.0 { "Mengunduh video hasil dari VPS" } else { "Menggabungkan klip, suara, dan caption" }));
         },
         resource_dir,
         remote,
@@ -773,7 +913,7 @@ pub fn start_export(
     opts: ExportOptions,
     resource_dir: Option<PathBuf>,
 ) -> Result<Value, String> {
-    if opts.target == "ssh" { crate::media::ssh_export::validate_profile(&opts.ssh_profile)?; }
+    if opts.target == "ssh" { export_profiles(&opts)?; }
     else if !opts.target.is_empty() && opts.target != "local" { return Err("Tujuan ekspor tidak dikenal".into()); }
     let job = {
         let conn = db.lock().unwrap();
@@ -811,6 +951,56 @@ pub fn start_export(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn narration_concatenates_padded_clips_and_silent_gaps_without_delay_buffers() {
+        let segments = plan_segments(&[clip(300,"fade"),clip(200,"cut"),clip(400,"cut")],30);
+        let graph = narration_graph(&segments,&[Some(0),None,Some(1)]);
+        assert!(graph[0].contains("apad,atrim=duration=0.300000,asetpts=PTS-STARTPTS[a0]"));
+        assert!(graph[1].starts_with("anullsrc=r=48000:cl=stereo,atrim=duration=0.200000"));
+        assert!(graph[2].starts_with("[1:a]"));
+        assert_eq!(graph[3],"[a0][a1][a2]concat=n=3:v=0:a=1[voice]");
+        assert!(!graph.join(";").contains("adelay"));
+        assert!(narration_graph(&segments,&[None,None,None]).is_empty());
+    }
+
+    #[test]
+    #[ignore = "writes synthetic audio graphs for the optional bounded-memory Linux test"]
+    fn write_narration_memory_fixture() {
+        let directory = PathBuf::from(std::env::var_os("DE_STORY_RENDER_FIXTURE_DIR").expect("fixture directory"));
+        let workspace = PathBuf::from(env!("CARGO_MANIFEST_DIR")).parent().unwrap().join(".toolchain").canonicalize().unwrap();
+        assert_eq!(directory.parent().unwrap().canonicalize().unwrap(),workspace);
+        assert!(directory.file_name().unwrap().to_string_lossy().starts_with("render-memory-"));
+        fs::create_dir_all(&directory).unwrap();
+        let long = plan_segments(&(0..60).map(|_|clip(10000,"cut")).collect::<Vec<_>>(),30);
+        let short = plan_segments(&[clip(300,"cut"),clip(200,"cut"),clip(400,"cut")],30);
+        let fixture = serde_json::json!({"long":narration_graph(&long,&(0..60).map(Some).collect::<Vec<_>>()).join(";\n"),"short":narration_graph(&short,&[Some(0),None,Some(1)]).join(";\n")});
+        fs::write(directory.join("graphs.json"),serde_json::to_vec(&fixture).unwrap()).unwrap();
+    }
+
+    #[test]
+    fn distributed_render_balances_duration_and_preserves_every_clip_once() {
+        let segs = plan_segments(&[clip(1000,"fade"), clip(9000,"cut"), clip(6000,"fade"), clip(4000,"cut")],30);
+        let groups = distribute_segments(&segs,2);
+        assert_eq!(groups.len(),2);
+        let mut indices = groups.concat(); indices.sort();
+        assert_eq!(indices,vec![0,1,2,3]);
+        assert_eq!(groups,vec![vec![0,1],vec![2,3]]);
+        let first = merged_plan(&segs[..2]);
+        let second = merged_plan(&segs[2..]);
+        assert_eq!(first.start,0.0);
+        assert_eq!(second.start,first.own);
+        assert_eq!(first.overlap,segs[1].overlap);
+        assert_eq!(second.overlap,0.0);
+        assert!((first.own + second.own - segs.iter().map(|s|s.own).sum::<f64>()).abs()<1e-9);
+        let loads: Vec<f64> = groups.iter().map(|g|g.iter().map(|&i|segs[i].own+segs[i].overlap).sum()).collect();
+        assert!((loads[0]-loads[1]).abs()<3.0);
+        assert_eq!(distribute_segments(&segs,20).len(),4);
+        assert!(distribute_segments(&[],2).is_empty());
+        let mut opts: ExportOptions = serde_json::from_value(serde_json::json!({"fps":30,"resolution":1440,"burnCaptions":true,"writeSrt":false,"duckMusic":true,"normalizeAudio":true,"folder":"test","fileName":"test","sshProfile":"primary","sshProfiles":["other","PRIMARY","third","other"]})).unwrap();
+        assert_eq!(export_profiles(&opts).unwrap(),vec!["primary","other","third"]);
+        opts.ssh_profiles.push("bad;hostname".into()); assert!(export_profiles(&opts).is_err());
+    }
 
     fn clip(duration_ms: i64, transition: &str) -> ClipRow {
         ClipRow {
@@ -915,6 +1105,10 @@ mod tests {
         assert_eq!((l1080.w, l1080.h), (1920, 1080));
         let p1080 = output_size("9:16", 1080);
         assert_eq!((p1080.w, p1080.h), (1080, 1920));
+        let l2k = output_size("16:9", 1440);
+        assert_eq!((l2k.w, l2k.h), (2560, 1440));
+        let p2k = output_size("9:16", 1440);
+        assert_eq!((p2k.w, p2k.h), (1440, 2560));
         let l4k = output_size("16:9", 2160);
         assert_eq!((l4k.w, l4k.h), (3840, 2160));
     }
@@ -939,8 +1133,54 @@ mod tests {
         assert!(composite.contains("enable='gte(t,1.000)*lt(t,4.500)'"));
     }
     #[tokio::test]
+    #[ignore = "renders a tiny synthetic 2K fixture locally and on the configured VPS"]
+    async fn render_1440p_dimensions_on_local_and_ssh() {
+        let profile = std::env::var("DE_STORY_SSH_PROFILE").unwrap_or("instabox-render".into());
+        let tmp = tempfile::tempdir().unwrap();
+        let token = CancellationToken::new();
+        for (aspect, fps) in [("16:9", 30), ("9:16", 60)] {
+            let size = output_size(aspect, 1440);
+            for ssh in [false, true] {
+                let id = uuid::Uuid::new_v4().to_string();
+                let mut remote = if ssh { Some(SshExport::new(&profile, &id, tmp.path(), "2K synthetic render check", true, &token).await.unwrap()) } else { None };
+                let output = tmp.path().join(format!("2k-{fps}-{ssh}.mp4"));
+                let args = vec!["-f".into(), "lavfi".into(), "-i".into(), format!("color=c=navy:s={}x{}:r={fps}", size.w, size.h),
+                    "-t".into(), "0.1".into(), "-c:v".into(), "libx264".into(), "-preset".into(), "ultrafast".into(), "-threads".into(), "1".into(),
+                    "-pix_fmt".into(), "yuv420p".into(), output.to_string_lossy().to_string()];
+                run_ffmpeg(&args, tmp.path(), &token, Some(0.1), |_| {}, None, &mut remote).await.unwrap();
+                assert_eq!(crate::services::audio::probe_size(&output).await.unwrap(), (size.w, size.h));
+            }
+        }
+    }
+
+    #[tokio::test]
+    #[ignore = "renders 20 synthetic 2K clips with a 3 GiB address-space cap on the configured Linux VPS"]
+    async fn ssh_grouped_2k_memory_regression() {
+        let profile = std::env::var("DE_STORY_SSH_PROFILE").unwrap_or("instabox-render".into());
+        let tmp = tempfile::tempdir().unwrap();
+        let token = CancellationToken::new();
+        let id = uuid::Uuid::new_v4().to_string();
+        let mut remote = Some(SshExport::new(&profile,&id,tmp.path(),"2K grouped memory regression",true,&token).await.unwrap());
+        let worker = tmp.path().join("ssh-upload").join(&id).join("worker.py");
+        let code = fs::read_to_string(&worker).unwrap();
+        fs::write(&worker,format!("import resource\nresource.setrlimit(resource.RLIMIT_STACK,(524288,524288))\nresource.setrlimit(resource.RLIMIT_AS,(3221225472,3221225472))\n{code}")).unwrap();
+        let source: Vec<String> = ["-f","lavfi","-i","color=c=navy:s=2560x1440:r=30","-t","1.4","-an","-c:v","libx264","-threads","2","-preset","ultrafast","-pix_fmt","yuv420p","leaf.mp4"].iter().map(|s|s.to_string()).collect();
+        remote.as_mut().unwrap().queue(&source,1.4).unwrap();
+        let opts: ExportOptions = serde_json::from_value(serde_json::json!({"fps":30,"resolution":1440,"burnCaptions":false,"writeSrt":false,"duckMusic":false,"normalizeAudio":false,"folder":"unused","fileName":"fixture"})).unwrap();
+        let plans = plan_segments(&(0..20).map(|i|clip(1000,if i%3==0 {"cut"} else {"fade"})).collect::<Vec<_>>(),30);
+        let (file,plan) = merge_video_parts(vec!["leaf.mp4".into();20],plans,700,&opts,tmp.path(),&token,None,&mut remote).await.unwrap();
+        assert_eq!(plan.own,20.0); assert_eq!(plan.overlap,0.0);
+        let output = tmp.path().join("bounded-2k.mp4");
+        let args=vec!["-i".into(),file,"-c:v".into(),"copy".into(),"-an".into(),output.to_string_lossy().to_string()];
+        run_ffmpeg(&args,tmp.path(),&token,Some(20.0),|_|{},None,&mut remote).await.unwrap();
+        assert_eq!(crate::services::audio::probe_size(&output).await.unwrap(),(2560,1440));
+        let duration=crate::services::audio::probe_duration_ms(&output).await.unwrap();
+        assert!((duration-20000.0).abs()<100.0,"duration {duration}");
+    }
+
+    #[tokio::test]
     #[ignore = "uses the configured VPS to verify SSH upload, render, download and deletion"]
-    async fn ssh_render_round_trip_and_result_management() {
+    async fn ssh_distributed_render_round_trip_and_result_management() {
         use uuid::Uuid;
         use crate::media::ssh_export::{self, SshExport};
         let profile = std::env::var("DE_STORY_SSH_PROFILE").unwrap_or("instabox-render".into());
@@ -954,16 +1194,27 @@ mod tests {
         run_ffmpeg(&image_args, cwd, &token, None, |_| {}, None, &mut local).await.unwrap();
         let audio_args: Vec<String> = ["-f", "lavfi", "-i", "sine=frequency=440:sample_rate=48000:duration=2", "-c:a", "pcm_s16le"].iter().map(|s| s.to_string()).chain([audio.to_string_lossy().to_string()]).collect();
         run_ffmpeg(&audio_args, cwd, &token, None, |_| {}, None, &mut local).await.unwrap();
-        ssh_export::install(&profile).await.unwrap();
         let id = Uuid::new_v4().to_string();
         let mut remote = Some(SshExport::new(&profile, &id, cwd, "SSH test", false, &token).await.unwrap());
         let size = output_size("9:16", 720);
         let segments = plan_segments(&[clip(1000, "fade"), clip(1000, "cut")], 30);
+        let second = std::env::var("DE_STORY_SSH_SECOND_PROFILE").unwrap_or(profile.clone());
+        let mut nodes = Vec::new();
         for (i, segment) in segments.iter().enumerate() {
+            let child_id = Uuid::new_v4().to_string();
+            let mut child = SshExport::new(if i==0 {&profile} else {&second},&child_id,cwd,"Distributed synthetic clip",false,&token).await.unwrap();
             let len = segment.own + segment.overlap;
             let filter = still_image_filter(&size, 720, 30, "zoomin", "halus", 30);
             let args = vec!["-loop".into(), "1".into(), "-framerate".into(), "30".into(), "-t".into(), format!("{len}"), "-i".into(), source.to_string_lossy().to_string(), "-vf".into(), filter, "-an".into(), "-c:v".into(), "libx264".into(), "-preset".into(), "veryfast".into(), "-pix_fmt".into(), "yuv420p".into(), "-r".into(), "30".into(), format!("seg_{i:03}.mp4")];
-            run_ffmpeg(&args, cwd, &token, None, |_| {}, None, &mut remote).await.unwrap();
+            child.queue(&args,len).unwrap();
+            nodes.push((child,vec![format!("seg_{i:03}.mp4")]));
+        }
+        remote.as_ref().unwrap().prepare_receiver(&token).await.unwrap();
+        let results = futures_util::future::join_all(nodes.iter().map(|(node,files)|node.run_segments(files,cwd,remote.as_ref().unwrap(),&token,|_|{}))).await;
+        assert!(results.iter().all(Result::is_ok),"{results:?}");
+        assert!(!cwd.join("seg_000.mp4").exists() && !cwd.join("seg_001.mp4").exists(),"Intermediate payload must not pass through the laptop");
+        for (node,_) in &nodes {
+            assert!(!ssh_export::list_results(&profile).await.unwrap()["results"].as_array().unwrap().iter().any(|r|r["id"]==node.id()));
         }
         std::fs::create_dir(cwd.join("fonts")).unwrap();
         let font = std::fs::read_dir(fonts_dir(None)).unwrap().filter_map(Result::ok).find(|p| p.file_name().to_string_lossy().starts_with("Poppins") && p.path().extension().is_some_and(|e| e == "ttf")).unwrap();
@@ -971,12 +1222,15 @@ mod tests {
         std::fs::write(cwd.join("captions.ass"), "[Script Info]\nScriptType: v4.00+\nPlayResX: 720\nPlayResY: 1280\n[V4+ Styles]\nFormat: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\nStyle: Default,Poppins,50,&H00FFFFFF,&H00FFFFFF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,2,0,2,20,20,60,1\n[Events]\nFormat: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\nDialogue: 0,0:00:00.00,0:00:02.00,Default,,0,0,0,,SSH render test\n").unwrap();
         let (mut graph, video) = video_graph(&segments, 30);
         graph.push(format!("{video}ass=captions.ass:fontsdir=fonts,format=yuv420p[vout]"));
-        graph.push("[2:a]aresample=48000,aformat=channel_layouts=stereo[aout]".into());
+        graph.extend(narration_graph(&segments,&[Some(2),Some(3)]));
+        graph.push("[voice]anull[aout]".into());
         std::fs::write(cwd.join("graph.txt"), graph.join(";\n")).unwrap();
         let output = cwd.join("hasil SSH test.mp4");
-        let args = vec!["-i".into(), "seg_000.mp4".into(), "-i".into(), "seg_001.mp4".into(), "-i".into(), audio.to_string_lossy().to_string(), "-filter_complex_script".into(), "graph.txt".into(), "-map".into(), "[vout]".into(), "-map".into(), "[aout]".into(), "-c:v".into(), "libx264".into(), "-preset".into(), "veryfast".into(), "-c:a".into(), "aac".into(), "-t".into(), "2".into(), output.to_string_lossy().to_string()];
+        let args = vec!["-threads".into(),"1".into(),"-i".into(), "seg_000.mp4".into(), "-threads".into(),"1".into(),"-i".into(), "seg_001.mp4".into(), "-i".into(), audio.to_string_lossy().to_string(), "-i".into(), audio.to_string_lossy().to_string(), "-filter_complex_script".into(), "graph.txt".into(), "-map".into(), "[vout]".into(), "-map".into(), "[aout]".into(), "-c:v".into(), "libx264".into(), "-threads".into(),"2".into(),"-preset".into(), "veryfast".into(), "-c:a".into(), "aac".into(), "-t".into(), "2".into(), output.to_string_lossy().to_string()];
         run_ffmpeg(&args, cwd, &token, Some(2.0), |_| {}, None, &mut remote).await.unwrap();
         assert_eq!(crate::services::audio::probe_size(&output).await.unwrap(), (720, 1280));
+        let duration = crate::services::audio::probe_duration_ms(&output).await.unwrap();
+        assert!((duration-2000.0).abs()<100.0,"duration {duration}");
         let list = ssh_export::list_results(&profile).await.unwrap();
         assert!(list["results"].as_array().unwrap().iter().any(|r| r["id"] == id && r["state"] == "completed"));
         let downloaded = ssh_export::download_result(&profile, &id, &cwd.join("download"), false).await.unwrap();

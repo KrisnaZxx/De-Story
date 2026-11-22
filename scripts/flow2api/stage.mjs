@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * stage.mjs — build the bundled Flow2API runtime for the De Story Tauri app.
+ * stage.mjs — build the bundled Flow2API runtime for the Bara Studio Tauri app.
  *
  * The Rust supervisor (`src-tauri/src/flow2api_runtime.rs`) resolves everything
  * relative to `<resource_dir>/flow2api` and expects:
@@ -531,7 +531,7 @@ function stageBrowsers(pythonPath, stageDir) {
 function generateThirdPartyNotices(stageDir, sourceRoot, manifest) {
   const sitePackages = path.join(stageDir, 'python', 'Lib', 'site-packages');
   const lines = [];
-  lines.push('De Story — bundled Flow2API runtime — third-party notices (original: Bang Story)');
+  lines.push('Bara Studio — bundled Flow2API runtime — third-party notices (original: Bang Story)');
   lines.push('='.repeat(72));
   lines.push('');
   lines.push('This bundle embeds the following third-party components.');

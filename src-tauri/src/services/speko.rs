@@ -132,6 +132,70 @@ pub async fn list_models(key: &str, kind: &str) -> Result<Vec<Value>, String> {
     }).collect())
 }
 
+fn model_languages(id: &str) -> Option<Vec<String>> {
+    static REGISTRY: std::sync::OnceLock<Value> = std::sync::OnceLock::new();
+    let registry = REGISTRY.get_or_init(|| serde_json::from_str(include_str!("../../../src/shared/speko-languages.json")).expect("valid Speko language registry"));
+    let values = registry["models"][id].as_array()?;
+    values.iter().map(|v| v.as_str().map(str::to_string)).collect()
+}
+
+pub fn validate_language(id: &str, language: &str) -> Result<(), String> {
+    let supported = model_languages(id).ok_or_else(|| format!("Dukungan bahasa model {id} belum terverifikasi. Pilih model Speko yang sudah terkonfirmasi."))?;
+    let normalized = language.trim().to_ascii_lowercase().replace('_', "-");
+    let base = normalized.split('-').next().unwrap_or("");
+    if base.is_empty() || !supported.iter().any(|l| l.to_ascii_lowercase().split('-').next() == Some(base)) {
+        return Err(format!("Model {id} tidak mendukung bahasa proyek ({language}). Pilih model Speko lain atau ubah bahasa proyek sebelum generate."));
+    }
+    Ok(())
+}
+
+pub fn validate_settings_language(settings: &Value, provider: &str, language: &str) -> Result<(), String> {
+    let field = if provider == "speko" { "spekoTtsModel" }
+        else if provider == "gemini" && settings["whisperAuto"].as_bool().unwrap_or(true) && settings["captionEngine"] == "speko" { "spekoSttModel" }
+        else { return Ok(()); };
+    validate_language(settings[field].as_str().unwrap_or(""), language)
+}
+
+fn voice_options(voices: &[Value]) -> Vec<Value> {
+    voices.iter().filter_map(|v| {
+        let id = v["id"].as_str().or_else(|| v.as_str())?.trim();
+        if id.is_empty() || id == "auto" || id.len() > 256 { return None; }
+        let gender = match v["gender"].as_str() { Some("male") => "Pria", Some("female") => "Wanita", _ => "Suara bawaan model" };
+        let description = match v["language"].as_str().filter(|s| !s.is_empty()) { Some(lang) => format!("{gender} · contoh {lang}"), None => gender.to_string() };
+        let preview = v["preview_url"].as_str().or_else(|| v["previewUrl"].as_str())
+            .filter(|url| reqwest::Url::parse(url).is_ok_and(|u| u.scheme() == "https" && u.username().is_empty() && u.password().is_none()));
+        Some(json!({"id":id,"name":v["name"].as_str().unwrap_or(id),"description":description,"previewUrl":preview}))
+    }).collect()
+}
+
+pub async fn list_voices(key: &str, model: &str, language: &str) -> Result<Vec<Value>, String> {
+    validate_language(model, language)?;
+    let mut result = vec![json!({"id":"auto","name":"Otomatis sesuai bahasa","description":"Suara bawaan model; tidak membuat audio contoh berbayar"})];
+    let snapshot: Value = serde_json::from_str(include_str!("speko-voices.json")).map_err(|_| "Katalog suara bawaan tidak valid")?;
+    if model.starts_with("soniox/tts-rt-") {
+        // Soniox's public demo catalog needs no key; the snapshot keeps v2 usable offline.
+        let live = async {
+            let response = client()?.get("https://soniox.com/api/tts-models").timeout(Duration::from_secs(12)).send().await.map_err(|_| "Katalog suara tidak merespons")?;
+            let value = response_json(response).await?;
+            value["models"].as_array().and_then(|ms| ms.iter().find(|m| m["id"].as_str() == model.split_once('/').map(|(_, id)| id)))
+                .and_then(|m| m["voices"].as_array()).cloned().ok_or("Daftar suara tidak tersedia".to_string())
+        }.await;
+        let voices: Vec<Value> = match live { Ok(v) => v, Err(_) if model == "soniox/tts-rt-v2" => snapshot["soniox"].as_array().cloned().unwrap_or_default(), Err(_) => vec![] };
+        result.extend(voice_options(&voices));
+    } else if model.starts_with("cartesia/sonic-") || matches!(model, "elevenlabs/eleven_flash_v2" | "elevenlabs/eleven_flash_v2_5" | "elevenlabs/eleven_multilingual_v2") {
+        let provider = model.split_once('/').unwrap().0;
+        let mut voices = snapshot[provider].as_array().cloned().unwrap_or_default();
+        voices.sort_by_key(|v| v["language"].as_str() != Some(language.split('-').next().unwrap_or(language)));
+        result.extend(voice_options(&voices));
+    } else if !model.is_empty() && !key.is_empty() {
+        let models = catalog(key, "tts").await?;
+        if let Some(voices) = models.iter().find(|m| route_id(m).as_deref() == Some(model)).and_then(|m| m["voices"].as_array()) {
+            result.extend(voice_options(voices));
+        }
+    }
+    Ok(result)
+}
+
 async fn selected(
     key: &str,
     model: &str,
@@ -223,6 +287,7 @@ pub async fn speak(
     if text.trim().is_empty() || text.chars().count() > 10_000 {
         return Err("Teks Speko TTS harus berisi 1–10.000 karakter per klip".into());
     }
+    validate_language(model, language)?;
     selected(key, model, "tts", token).await?;
     speak_at(WS, key, model, voice, text, language, token).await
 }
@@ -437,6 +502,7 @@ pub async fn time_script(
     tmp: &Path,
     token: &CancellationToken,
 ) -> Result<Vec<WordTiming>, String> {
+    validate_language(model, language)?;
     let model_info = selected(key, model, "stt", token).await?;
     let chunk = chunk_seconds(&model_info)?;
     let path = tmp.join(format!("speko-{}.pcm", Uuid::new_v4()));
@@ -469,6 +535,46 @@ pub async fn time_script(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn language_guard_distinguishes_english_only_multilingual_and_unknown_models() {
+        assert!(validate_language("elevenlabs/eleven_flash_v2", "id").is_err());
+        assert!(validate_language("elevenlabs/eleven_flash_v2", "en-US").is_ok());
+        for id in ["soniox/tts-rt-v2", "cartesia/sonic-3", "cartesia/sonic-3.5", "cartesia/sonic-3.6", "elevenlabs/eleven_flash_v2_5", "elevenlabs/eleven_multilingual_v2"] {
+            assert!(validate_language(id, "id-ID").is_ok(), "{id}");
+            assert!(validate_language(id, "en").is_ok(), "{id}");
+            assert!(validate_language(id, "su").is_err(), "{id}");
+        }
+        assert!(validate_language("munsit/munsit-en-ar", "id").is_err());
+        assert!(validate_language("munsit/munsit-en-ar", "en").is_ok());
+        assert!(validate_language("munsit/munsit", "en").is_err());
+        assert!(validate_language("gemini/gemini-3.5-transcribe", "id").is_ok());
+        assert!(validate_language("new/model", "id").unwrap_err().contains("belum terverifikasi"));
+    }
+
+    #[tokio::test]
+    async fn incompatible_language_is_rejected_before_a_paid_socket_or_voice_catalog_request() {
+        let error = tokio::time::timeout(Duration::from_millis(200), speak("dummy", "elevenlabs/eleven_flash_v2", "", "Halo", "id", &CancellationToken::new())).await.unwrap().unwrap_err();
+        assert!(error.contains("tidak mendukung"));
+        assert!(list_voices("dummy", "elevenlabs/eleven_flash_v2", "id").await.unwrap_err().contains("tidak mendukung"));
+        let settings = json!({"captionEngine":"speko","whisperAuto":true,"spekoSttModel":"munsit/munsit"});
+        assert!(validate_settings_language(&settings, "gemini", "id").is_err());
+        let mut disabled = settings.clone();
+        disabled["whisperAuto"] = json!(false);
+        assert!(validate_settings_language(&disabled, "gemini", "id").is_ok());
+    }
+    #[test]
+    fn all_supported_voice_providers_have_dropdowns_and_safe_existing_previews() {
+        let catalog: Value = serde_json::from_str(include_str!("speko-voices.json")).unwrap();
+        for provider in ["soniox", "cartesia", "elevenlabs"] {
+            let voices = voice_options(catalog[provider].as_array().unwrap());
+            assert!(voices.len() >= 20, "missing {provider} voices");
+            let ids: std::collections::HashSet<_> = voices.iter().map(|v| v["id"].as_str().unwrap()).collect();
+            assert_eq!(ids.len(), voices.len(), "duplicate {provider} voices");
+            if provider != "soniox" { assert!(voices.iter().any(|v| v["previewUrl"].as_str().is_some())); }
+        }
+        let values = voice_options(&[json!({"id":"unsafe","preview_url":"javascript:alert(1)"}),json!({"id":"bad","preview_url":"https://key:secret@example.test/x"})]);
+        assert!(values.iter().all(|v| v["previewUrl"].is_null()));
+    }
     #[test]
     fn catalog_requires_real_word_timings_and_retains_nested_model_id() {
         let model = json!({"id":"org/model:v2","provider":"vendor","kind":"tts","capabilities":{"streaming":true,"word_timings":true}});

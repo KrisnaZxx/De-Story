@@ -90,7 +90,7 @@ pub async fn connect(db: &DbPool) -> Result<McpStatus, String> {
     let listener = TcpListener::bind("127.0.0.1:0").await.map_err(|e| e.to_string())?;
     let redirect = format!("http://127.0.0.1:{}/callback", listener.local_addr().map_err(|e| e.to_string())?.port());
     let registration = oauth_json(client.post(format!("{ISSUER}/oauth/register")).json(&json!({
-        "client_name": "De Story", "redirect_uris": [redirect],
+        "client_name": "Bara Studio", "redirect_uris": [redirect],
         "grant_types": ["authorization_code", "refresh_token"], "response_types": ["code"],
         "token_endpoint_auth_method": "none", "scope": "openid email offline_access"
     })).send().await.map_err(|e| e.without_url().to_string())?).await?;
@@ -123,7 +123,7 @@ pub async fn connect(db: &DbPool) -> Result<McpStatus, String> {
             let target = request.lines().next().and_then(|l| l.strip_prefix("GET ")).and_then(|l| l.split(' ').next()).unwrap_or("");
             if !target.starts_with("/callback?") { continue; }
             let result = callback_code(target, &state);
-            let message = if result.is_ok() { "Login diterima. Silakan kembali ke De Story untuk memeriksa sambungan." } else { "Login tidak cocok atau ditolak. Silakan kembali ke De Story." };
+            let message = if result.is_ok() { "Login diterima. Silakan kembali ke Bara Studio untuk memeriksa sambungan." } else { "Login tidak cocok atau ditolak. Silakan kembali ke Bara Studio." };
             let response = format!("HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8\r\nCache-Control: no-store\r\nConnection: close\r\nContent-Length: {}\r\n\r\n{message}", message.len());
             let _ = socket.write_all(response.as_bytes()).await;
             return result;

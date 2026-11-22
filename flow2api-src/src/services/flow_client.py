@@ -4656,6 +4656,9 @@ class _FlowClientBase(FlowFrontendMixin):
 
     def _get_retry_reason(self, error_str: str) -> Optional[str]:
         """判断是否需要重试，返回日志提示内容"""
+        from .flow_quota import is_quota_error
+        if is_quota_error(error_str):
+            return None
         error_lower = error_str.lower()
         if "browser captcha queue wait timeout" in error_lower:
             return None

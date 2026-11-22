@@ -10,6 +10,7 @@ import { isRunning, useProject } from '../../store/project'
 const RESOLUTIONS: { id: ExportOptions['resolution']; label: string; sub: string; mb: number }[] = [
   { id: 720, label: '720p', sub: 'Lebih kecil', mb: 0.4 },
   { id: 1080, label: '1080p', sub: 'Disarankan', mb: 0.75 },
+  { id: 1440, label: '2K', sub: '1440p', mb: 1.3 },
   { id: 2160, label: '4K', sub: 'Lebih lama', mb: 2.4 }
 ]
 
@@ -31,6 +32,7 @@ export function ExportDialog({ open, onClose, onStarted }: { open: boolean; onCl
   const [connections, setConnections] = useState<SshConnection[]>([])
   const [starting, setStarting] = useState(false)
   const [testingSsh, setTestingSsh] = useState(false)
+  const [multiVps, setMultiVps] = useState(false)
   const [sshMessage, setSshMessage] = useState('')
   const [sshError, setSshError] = useState(false)
   const [jobId, setJobId] = useState<string | null>(null)
@@ -41,9 +43,11 @@ export function ExportDialog({ open, onClose, onStarted }: { open: boolean; onCl
       Object.values(useProject.getState().jobs).find((j) => j.projectId === project.id && j.kind === 'export' && isRunning(j))?.id ?? null)
     let alive = true
     Promise.all([window.api.exporter.defaultFolder(), window.api.settings.get()]).then(([folder, settings]) => { if (!alive) return; setConnections(settings.sshConnections?.length ? settings.sshConnections : settings.sshConnection ? [settings.sshConnection] : []);
+      setMultiVps(!!settings.exportSshProfiles?.some(p => p !== settings.exportSshProfile))
       setOpts({
         target: settings.exportTarget ?? 'local',
         sshProfile: settings.exportSshProfile ?? 'instabox-render',
+        sshProfiles: settings.exportSshProfiles ?? [],
         deleteAfterDownload: false,
         fileName: slug(project.title),
         resolution: 1080,
@@ -70,14 +74,17 @@ export function ExportDialog({ open, onClose, onStarted }: { open: boolean; onCl
   const res = RESOLUTIONS.find((r) => r.id === opts.resolution)!
   const sizeMb = Math.round((totalMs / 1000) * res.mb * (opts.fps === 60 ? 1.5 : 1))
   const set = (p: Partial<ExportOptions>): void => setOpts({ ...opts, ...p })
+  const profiles = [...new Set([opts.sshProfile.trim(), ...(multiVps ? opts.sshProfiles ?? [] : [])].filter(Boolean))]
 
   const start = async (): Promise<void> => {
     if (starting || running) return
     setStarting(true)
     try {
       await flush()
-      await window.api.settings.set({ exportTarget: opts.target, exportSshProfile: opts.sshProfile.trim() })
-      const j = await window.api.exporter.start(project.id, { ...opts, sshProfile: opts.sshProfile.trim() })
+      if (opts.target === 'ssh' && multiVps && profiles.length < 2) throw new Error('Pilih minimal dua VPS untuk pembagian render.')
+      const sshProfiles = multiVps ? profiles : []
+      await window.api.settings.set({ exportTarget: opts.target, exportSshProfile: opts.sshProfile.trim(), exportSshProfiles: sshProfiles })
+      const j = await window.api.exporter.start(project.id, { ...opts, sshProfile: opts.sshProfile.trim(), sshProfiles })
       useProject.getState().upsertJob(j)
       setJobId(j.id)
       onClose()
@@ -138,7 +145,7 @@ export function ExportDialog({ open, onClose, onStarted }: { open: boolean; onCl
             </label>
             {opts.target === 'ssh' && <>
               <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-semibold">Nama profil SSH</span>
+                <span className="text-sm font-semibold">VPS utama untuk penggabungan</span>
                 <input list="export-vps-profiles" className={inputCls} value={opts.sshProfile} disabled={running || starting}
                   placeholder="instabox-render" onChange={(e) => { set({ sshProfile: e.target.value }); setSshMessage('') }} /><datalist id="export-vps-profiles">{connections.map(c => <option key={c.profile} value={c.profile}>{c.host}</option>)}</datalist>
               </label>
@@ -146,19 +153,26 @@ export function ExportDialog({ open, onClose, onStarted }: { open: boolean; onCl
                 setTestingSsh(true)
                 setSshMessage('')
                 try {
-                  const server = await window.api.exporter.testSsh(opts.sshProfile.trim())
+                  const servers = await Promise.all(profiles.map(async profile => ({profile, server: await window.api.exporter.testSsh(profile)})))
                   setSshError(false)
-                  setSshMessage(`Terhubung · ${server.cpus} CPU · ruang kosong ${server.freeGb} GB · ${server.ffmpeg && server.worker ? 'siap render' : 'pasang kebutuhan di Setting SSH'}`)
+                  setSshMessage(servers.map(({profile,server})=>`${profile}: ${server.cpus} CPU · ${server.freeGb} GB kosong · ${server.ffmpeg && server.worker ? 'siap render' : 'pasang kebutuhan di Pengaturan SSH'}`).join(' / '))
                 } catch (e) { setSshError(true); setSshMessage(errorText(e)) }
                 finally { setTestingSsh(false) }
-              }}>Periksa VPS</Button>
+              }}>{multiVps ? 'Periksa VPS terpilih' : 'Periksa VPS'}</Button>
               {sshMessage && <p role="status" className={cx('text-sm', sshError ? 'text-bad-ink' : 'text-ok-ink')}>{sshMessage}</p>}
+              <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={multiVps} disabled={running || starting} onChange={e=>{setMultiVps(e.target.checked);setSshMessage('')}} />Bagi render klip ke beberapa VPS</label>
+              {multiVps && <div className="space-y-3 rounded-xl border border-line p-3">
+                <p className="text-sm text-ink-2">VPS utama ikut merender klip dan menggabungkan hasil akhir. Pilih VPS tambahan dari profil SSH tersimpan.</p>
+                {[...new Set([opts.sshProfile.trim(), ...connections.map(c=>c.profile), ...(opts.sshProfiles??[])].filter(Boolean))].map(profile=><label key={profile} className="flex items-center gap-3 text-sm"><input type="checkbox" disabled={running || starting || profile===opts.sshProfile.trim()} checked={profiles.includes(profile)} onChange={e=>{set({sshProfiles:e.target.checked?[...profiles,profile]:profiles.filter(p=>p!==profile)});setSshMessage('')}} />{profile}{profile===opts.sshProfile.trim()?' · VPS utama':''}</label>)}
+                <p className="text-xs text-muted">{profiles.length} VPS dipilih. Bagian cerita berurutan dibagi menurut durasi. Tambahkan profil dan pasang kebutuhan setiap VPS di Pengaturan → Pengaturan SSH.</p>
+                <p className="text-xs text-muted">Bagian dipindahkan langsung antar-VPS lewat HTTPS privat InstaBox; tidak diunduh ke laptop. Setiap VPS menggabungkan klip dalam kelompok kecil agar RAM lebih hemat. VPS utama mengolah caption, suara, dan video akhir; hasil akhirnya diunduh ke laptop. Biarkan aplikasi aktif. Server selain InstaBox dapat memakai render satu VPS.</p>
+              </div>}
               <label className="flex items-center gap-3 text-sm">
                 <input type="checkbox" checked={opts.deleteAfterDownload} disabled={running || starting} onChange={(e) => set({ deleteAfterDownload: e.target.checked })} />
                 Hapus video di VPS setelah unduhan berhasil diverifikasi
               </label>
-              <p className="text-sm text-ink-2">Video yang disimpan di VPS dapat dilihat, diunduh, atau dihapus melalui Pengaturan → Setting SSH.</p>
-              <p className="text-sm text-ink-2">Aset diunggah lewat SSH, dirender di VPS, lalu video diunduh ke folder hasil. Biarkan De Story dan internet tetap terbuka sampai selesai. Render mengikuti batas paket VPS.</p>
+              <p className="text-sm text-ink-2">Video yang disimpan di VPS dapat dilihat, diunduh, atau dihapus melalui Pengaturan → Pengaturan SSH.</p>
+              <p className="text-sm text-ink-2">Aset diunggah lewat SSH, dirender di VPS, lalu video diunduh ke folder hasil. Render tetap berjalan saat SSH terputus; aplikasi menyambung ulang untuk membaca progres. Biarkan aplikasi terbuka untuk unduhan otomatis, atau ambil hasil nanti dari Pengaturan SSH. Render mengikuti batas paket VPS.</p>
             </>}
           </div>
           {missing.length > 0 && (
@@ -185,7 +199,7 @@ export function ExportDialog({ open, onClose, onStarted }: { open: boolean; onCl
           <div className="grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_190px] gap-3.5">
             <div className="flex flex-col gap-1.5">
               <span className="text-sm font-semibold">Resolusi</span>
-              <div className="grid grid-cols-3 gap-1.5">
+              <div className="grid grid-cols-4 gap-1.5">
                 {RESOLUTIONS.map((r) => {
                   const on = r.id === opts.resolution
                   return (

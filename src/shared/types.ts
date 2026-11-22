@@ -296,6 +296,7 @@ export interface AppSettings {
   exportFolder: string | null
   exportTarget: 'local' | 'ssh'
   exportSshProfile: string
+  exportSshProfiles?: string[]
   sshConnections?: SshConnection[]
   whisperSshProfile?: string
   sshConnection?: SshConnection
@@ -420,11 +421,12 @@ export interface SshStatus {
 }
 
 export interface SshResult {
+  kind?: 'video' | 'segments'
   id: string
   title: string
   filename: string
   createdAt: number
-  state: 'completed' | 'running' | 'failed' | 'incomplete'
+  state: 'completed' | 'running' | 'queued' | 'failed' | 'incomplete'
   bytes: number
   error?: string
 }
@@ -437,9 +439,10 @@ export interface SshResults {
 export interface ExportOptions {
   target: 'local' | 'ssh'
   sshProfile: string
+  sshProfiles?: string[]
   deleteAfterDownload: boolean
   fileName: string
-  resolution: 720 | 1080 | 2160
+  resolution: 720 | 1080 | 1440 | 2160
   fps: 30 | 60
   burnCaptions: boolean
   writeSrt: boolean

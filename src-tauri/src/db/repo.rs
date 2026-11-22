@@ -187,6 +187,7 @@ pub fn default_settings() -> Value {
         "exportFolder": null,
         "exportTarget": "local",
         "exportSshProfile": "instabox-render",
+        "exportSshProfiles": [],
         "llmProvider": "gemini",
         "llmModels": { "gemini": "gemini-3.8-flash", "openrouter": "", "groq": "", "custom": "" },
         "customBaseUrl": "",

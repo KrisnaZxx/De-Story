@@ -520,6 +520,7 @@ pub fn generate_narration(
     let clip_ids: Vec<String> = targets.iter().map(|c| c.id.clone()).collect();
     let job = {
         let conn = db.lock().unwrap();
+        crate::services::speko::validate_settings_language(&get_settings(&conn), &project.tts_provider, &project.language)?;
         insert_job(
             &conn,
             &project_id,
@@ -545,6 +546,7 @@ pub fn generate_narration(
             let p = get_project(&conn, &p_id).ok_or("Proyek tidak ditemukan")?;
             let s = get_settings(&conn);
             let prov = p.tts_provider.clone();
+            crate::services::speko::validate_settings_language(&s, &prov, &p.language)?;
             let k = get_secret(&conn, &prov).unwrap_or_default();
             let m = if prov == "gemini" {
                 // Empty when unset; gemini::speak_with_model turns that into a

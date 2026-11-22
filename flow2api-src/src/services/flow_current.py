@@ -577,6 +577,9 @@ class CurrentFlowClientMixin:
                 # MODEL_ACCESS_DENIED 为账号权限拒绝，重试不会改变结果
                 if "MODEL_ACCESS_DENIED" in str(error):
                     raise
+                from .flow_quota import is_quota_error
+                if is_quota_error(error) or getattr(error, "submission_uncertain", False) or getattr(error, "outcome_unknown", False):
+                    raise
                 error_text = str(error).lower()
                 is_missing_model = bool(
                     re.search(r"code\s*=\s*\[?5\]?", error_text)

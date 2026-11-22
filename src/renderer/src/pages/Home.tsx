@@ -223,7 +223,7 @@ export function Home() {
               <Select variant="pill" label="Format" value={aspectRatio} onChange={setAspectRatio} options={ASPECTS} menuWidth={200} />
               <StyleMenu value={styleId} onChange={setStyleId} />
               <Select variant="pill" label="Penyedia suara" value={tts} onChange={(p) => { setTts(p); setTtsVoice(p === 'gemini' ? 'Charon' : '') }} options={ttsOptions} menuWidth={280} />
-              <div className="flex min-w-0 max-w-full items-center gap-2"><VoicePicker provider={tts} value={ttsVoice} onChange={setTtsVoice} /></div>
+              <div className="flex min-w-0 max-w-full items-center gap-2"><VoicePicker provider={tts} value={ttsVoice} language={language} onChange={setTtsVoice} /></div>
               <div className="flex-1" />
               <Button variant="primary" size="lg" loading={creating} onClick={() => void start()}>
                 Mulai
@@ -322,7 +322,7 @@ export function Home() {
             <p className="text-sm text-muted">Belum ada proyek. Tulis ide di atas lalu klik Mulai.</p>
           )}
 
-          <footer className="mt-14 border-t border-line/60 pb-2 pt-6 text-center text-sm text-muted">De Story v1.1.0 · by KrisnaZxx</footer>
+          <footer className="mt-14 border-t border-line/60 pb-2 pt-6 text-center text-sm text-muted">Bara Studio v1.5.2 · by KrisnaZxx</footer>
         </section>
       </main>
     </div>

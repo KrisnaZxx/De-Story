@@ -1,28 +1,18 @@
-# De Story
+# Bara Studio
+
+Sebelumnya bernama De Story. Data proyek dan sesi tetap memakai folder data lama.
 
 **by KrisnaZxx** — buat video cerita dari ide, naskah, gambar, suara, caption, sampai MP4.
 
 ## Unduh aplikasi
 
-**[⬇ Unduh untuk Windows](https://github.com/KrisnaZxx/De-Story/releases/download/v1.3.0/De.Story_1.3.0_x64-setup.exe)** · **[Semua rilis](https://github.com/KrisnaZxx/De-Story/releases)**
+**[Unduh Bara Studio untuk Windows x64](https://github.com/KrisnaZxx/De-Story/releases/latest)**
 
-**v1.3.0 · rilis uji publik. Unduh satu installer sesuai perangkatmu.**
-
-| Perangkat | File yang dipilih | Ukuran |
-| --- | --- | --- |
-| Windows x64 | **[Installer .exe](https://github.com/KrisnaZxx/De-Story/releases/download/v1.3.0/De.Story_1.3.0_x64-setup.exe)** | ±311 MB |
-| Ubuntu / Debian desktop x64 | **[Paket .deb](https://github.com/KrisnaZxx/De-Story/releases/download/v1.3.0/De.Story_1.3.0_amd64.deb)** | ±549 MB |
-| macOS Apple Silicon (M1/M2/M3 dan seterusnya) | **[Installer .dmg](https://github.com/KrisnaZxx/De-Story/releases/download/v1.3.0/De.Story_1.3.0_aarch64.dmg)** | ±510 MB |
-
-Alternatif: [Windows .msi](https://github.com/KrisnaZxx/De-Story/releases/download/v1.3.0/De.Story_1.3.0_x64_en-US.msi) · [Linux .AppImage](https://github.com/KrisnaZxx/De-Story/releases/download/v1.3.0/De.Story_1.3.0_amd64.AppImage) · [Checksum SHA-256](https://github.com/KrisnaZxx/De-Story/releases/download/v1.3.0/SHA256SUMS).
-
-File **Source code** untuk pengembang. Pengguna biasa cukup memakai installer di atas. Paket macOS Intel dan Linux ARM belum tersedia. Build Linux/macOS sudah berhasil; penggunaan GUI-nya belum diuji langsung.
+Pilih installer `.exe` atau `.msi` dari bagian **Assets**. Bara Studio dirilis khusus Windows x64.
 
 ## Instalasi
 
-- **Windows:** jalankan `.exe`, ikuti installer, lalu buka De Story. Jika diminta, pasang WebView2 Runtime.
-- **Ubuntu 22.04+ / Debian 12+ dengan desktop:** buka `.deb` melalui pengelola paket dan instal dependensinya. Keyring desktop harus aktif. Untuk AppImage, aktifkan izin executable melalui Properties; dependensi sistem tetap diperlukan.
-- **macOS Apple Silicon:** buka `.dmg`, pindahkan De Story ke Applications. FFmpeg harus tersedia di `PATH`; paket saat ini belum membundelkannya. Keychain dipakai untuk menyimpan kunci layanan.
+Jalankan installer, ikuti langkah pemasangan, lalu buka Bara Studio. Jika diminta, pasang WebView2 Runtime.
 
 Chrome/Chromium reguler diperlukan jika memakai login Google Flow. Akun dan API key layanan AI disiapkan sendiri.
 
@@ -41,7 +31,7 @@ Untuk YouTube 16:9, tombol **Thumbnail** dan **Deskripsi & tag** ada di Editor. 
 1. **Pengaturan → Layanan AI dan kunci → Google Flow**. Tunggu Flow2API internal siap.
 2. Pada **Sesi login Flow**, klik **Tambah profil akun → Buka profil / login**.
 3. Login manual sampai halaman Google Flow terbuka. **Tutup jendela profil Chrome melalui X.**
-4. Kembali ke De Story, klik **Selesai login dan simpan**, lalu tunggu **Sesi siap**.
+4. Kembali ke Bara Studio, klik **Selesai login dan simpan**, lalu tunggu **Sesi siap**.
 
 Ulangi untuk akun lain. Pada pengaturan multiakun, pilih jumlah akun atau **Semua akun tersambung**. Aktifkan **Perbarui sesi otomatis** jika diperlukan. Google tetap dapat meminta verifikasi/login ulang.
 
@@ -67,24 +57,20 @@ STT Speko memakai durasi audio, TTS memakai karakter. Sinkronisasi ulang memakai
 - Gambar/video Flow, Higgsfield API/MCP, dan Vidgen; multiakun Flow/Vidgen.
 - Caption yang bisa diedit/digeser, undo/redo, zoom dan geser timeline, serta preview fullscreen.
 - Thumbnail, deskripsi, dan tag otomatis untuk proyek 16:9.
-- Ekspor FFmpeg lokal/VPS, beberapa profil SSH dengan key/password, riwayat ekspor, unduh/hapus hasil VPS, dan informasi storage.
+- Ekspor FFmpeg lokal/VPS hingga 4K, termasuk **2K (1440p)**, pembagian render klip ke beberapa VPS dengan transfer privat InstaBox, profil SSH dengan key/password, riwayat ekspor, unduh/hapus hasil VPS, dan informasi storage.
 
 Biaya/kuota mengikuti layanan yang dipilih. **Gambar Vidgen memakai kredit berbayar**; paket Unlimited video tidak otomatis berlaku untuk gambar. Trial/MCP dan akses model mengikuti hak akun penyedia.
 
 ## Memperbarui aplikasi
 
-1. Tunggu pekerjaan selesai, tutup De Story, lalu cadangkan folder data.
-2. Unduh satu installer versi baru untuk OS yang sama dari **[Releases](https://github.com/KrisnaZxx/De-Story/releases)**.
-3. Jalankan installer Windows/paket `.deb`, ganti aplikasi di Applications untuk macOS, atau gunakan AppImage baru. Pertahankan folder data aplikasi.
-4. Buka De Story dan periksa versi di **Pengaturan → Tentang aplikasi**.
+1. Tunggu pekerjaan selesai, tutup Bara Studio, lalu cadangkan folder data.
+2. Unduh installer Windows x64 versi baru dari **[Releases](https://github.com/KrisnaZxx/De-Story/releases)**.
+3. Jalankan installer Windows baru. Pertahankan folder data aplikasi.
+4. Buka Bara Studio dan periksa versi di **Pengaturan → Tentang aplikasi**.
 
-| OS | Folder data untuk backup |
-| --- | --- |
-| Windows | `%APPDATA%\De Story` |
-| Linux | `$XDG_DATA_HOME/De Story`, biasanya `~/.local/share/De Story` |
-| macOS | `~/Library/Application Support/De Story` |
+Folder data Windows ada di `%APPDATA%\De Story`.
 
-Backup seluruh folder, bukan hanya `studio.db`, agar media ikut tersimpan. Jangan membagikan backup karena memuat data akun. Pindah komputer/OS dapat memerlukan pengisian key atau login ulang.
+Backup seluruh folder, bukan hanya `studio.db`, agar media ikut tersimpan. Jangan membagikan backup karena memuat data akun. Pindah komputer dapat memerlukan pengisian key atau login ulang.
 
 ## Bantuan dan panduan
 
@@ -101,7 +87,7 @@ Saat melaporkan bug, sertakan versi aplikasi, OS, langkah kejadian, dan pesan er
 
 ## Cuplikan aplikasi
 
-Contoh tampilan memakai data demo.
+Contoh tampilan memakai data demo. Tampilan merah Bara Studio v1.4.0 di bawah masih dalam pengujian lokal; beberapa gambar pengaturan memperlihatkan rilis sebelumnya.
 
 ![Editor dengan preview dan timeline](docs/screenshots/editor.png)
 
@@ -110,6 +96,8 @@ Contoh tampilan memakai data demo.
 ![Editor tema terang](docs/screenshots/editor-light.png)
 
 ![Pengaturan Speko TTS dan STT](docs/screenshots/speko-settings.png)
+
+![Kredit akun Google Flow](docs/screenshots/flow-credits.png)
 
 ![Sesi login Flow](docs/screenshots/flow-sessions.png)
 

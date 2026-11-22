@@ -12,6 +12,7 @@ use tokio_util::sync::CancellationToken;
 use uuid::Uuid;
 
 const WORKER: &str = include_str!("ssh_worker.py");
+const TRANSFER: &str = include_str!("ssh_transfer.py");
 
 pub fn validate_profile(profile: &str) -> Result<(), String> {
     if profile.is_empty() || profile.len() > 64 || !profile.as_bytes()[0].is_ascii_alphanumeric()
@@ -179,8 +180,10 @@ pub async fn install(profile: &str) -> Result<Value, String> {
     let source = user_data_dir().join("ssh/worker.py");
     if let Some(parent) = source.parent() { std::fs::create_dir_all(parent).map_err(|e| e.to_string())?; }
     std::fs::write(&source, WORKER).map_err(|e| e.to_string())?;
+    let transfer = source.with_file_name("ssh_transfer.py");
+    std::fs::write(&transfer, TRANSFER).map_err(|e| e.to_string())?;
     let mut cmd = command_for("scp",profile);
-    cmd.arg(source).arg(format!("{profile}:.local/share/de-story-ssh/worker.py"));
+    cmd.arg(source).arg(transfer).arg(format!("{profile}:.local/share/de-story-ssh/"));
     checked(cmd, &token).await?;
     test_connection(profile).await
 }
@@ -242,6 +245,7 @@ async fn download_file(profile: &str, id: &str, destination: &Path, meta: &Value
 
 pub async fn download_result(profile: &str, id: &str, folder: &Path, delete_after: bool) -> Result<String, String> {
     let meta = manage(profile, "get", Some(id)).await?;
+    if meta["kind"] == "segments" { return Err("Bagian render sementara bukan video akhir".into()); }
     let filename = safe_filename(meta["filename"].as_str().ok_or("Nama hasil VPS tidak ditemukan")?)?;
     std::fs::create_dir_all(folder).map_err(|e| e.to_string())?;
     let mut destination = folder.join(filename);
@@ -264,22 +268,24 @@ pub struct SshExport {
 }
 
 impl SshExport {
+    pub fn id(&self) -> &str { &self.id }
     pub async fn new(profile: &str, job_id: &str, cwd: &Path, title: &str, delete_after_download: bool, token: &CancellationToken) -> Result<Self, String> {
         validate_profile(profile)?;
         validate_id(job_id)?;
         let status = test_connection(profile).await?;
-        if !status["ffmpeg"].is_string() || status["worker"] != true { return Err("Pasang kebutuhan VPS di Pengaturan → Setting SSH terlebih dahulu".into()); }
+        if !status["ffmpeg"].is_string() || status["worker"] != true { return Err("Pasang kebutuhan VPS di Pengaturan → Pengaturan SSH terlebih dahulu".into()); }
         if token.is_cancelled() { return Err("Ekspor dibatalkan".into()); }
         let stage = cwd.join("ssh-upload").join(job_id);
         std::fs::create_dir_all(stage.join("inputs")).map_err(|e| e.to_string())?;
         std::fs::write(stage.join("worker.py"), WORKER).map_err(|e| e.to_string())?;
+        std::fs::write(stage.join("ssh_transfer.py"), TRANSFER).map_err(|e| e.to_string())?;
         Ok(Self { profile: profile.into(), id: job_id.into(), stage, inputs: HashMap::new(), commands: Vec::new(), title: title.into(), delete_after_download })
     }
 
     pub fn queue(&mut self, args: &[String], duration: f64) -> Result<(), String> {
         let mut mapped = args.to_vec();
         for index in 1..mapped.len() {
-            if mapped[index - 1] == "-i" && Path::new(&args[index]).is_absolute() {
+            if (mapped[index - 1] == "-i" || mapped[index - 1] == "-filter_complex_script") && Path::new(&args[index]).is_absolute() {
                 let source = PathBuf::from(&args[index]);
                 let relative = if let Some(hit) = self.inputs.get(&source) { hit.clone() } else {
                     let ext = source.extension().and_then(|s| s.to_str()).filter(|s| s.len() <= 8 && s.bytes().all(|c| c.is_ascii_alphanumeric())).unwrap_or("bin");
@@ -299,6 +305,12 @@ impl SshExport {
 
     pub async fn prepare(&mut self, args: &[String], cwd: &Path, duration: f64, token: &CancellationToken) -> Result<Command, String> {
         self.queue(args, duration)?;
+        let filename = Path::new(args.last().ok_or("File hasil tidak ditemukan")?).file_name().and_then(|s| s.to_str()).ok_or("Nama hasil tidak valid")?;
+        safe_filename(filename)?;
+        self.upload(cwd, filename, &[], token).await
+    }
+
+    async fn upload(&self, cwd: &Path, filename: &str, segments: &[String], token: &CancellationToken) -> Result<Command, String> {
         for filename in ["graph.txt", "captions.ass"] {
             let source = cwd.join(filename);
             if source.exists() { std::fs::copy(source, self.stage.join(filename)).map_err(|e| e.to_string())?; }
@@ -312,14 +324,123 @@ impl SshExport {
                 }
             }
         }
-        let filename = Path::new(args.last().ok_or("File hasil tidak ditemukan")?).file_name().and_then(|s| s.to_str()).ok_or("Nama hasil tidak valid")?;
-        safe_filename(filename)?;
-        let manifest = json!({"title":self.title,"filename":filename,"commands":self.commands});
+        let manifest = json!({"title":self.title,"filename":filename,"commands":self.commands,"segments":segments});
         std::fs::write(self.stage.join("manifest.json"), serde_json::to_vec(&manifest).map_err(|e| e.to_string())?).map_err(|e| e.to_string())?;
         let mut upload = command_for("scp",&self.profile);
         upload.arg("-r").arg(&self.stage).arg(format!("{}:.cache/de-story-render/", self.profile));
         checked(upload, token).await?;
-        Ok(ssh(&self.profile, &format!("cd {} && exec python3 worker.py run-plan", quote(&format!(".cache/de-story-render/{}", self.id)))))
+        Ok(self.worker_command("start"))
+    }
+
+    fn worker_command(&self, action: &str) -> Command {
+        ssh(&self.profile, &format!("cd {} && exec python3 worker.py {action} {}",
+            quote(&format!(".cache/de-story-render/{}", self.id)), quote(&self.id)))
+    }
+
+    pub async fn run<F: FnMut(f64)>(&mut self, args: &[String], cwd: &Path, duration: f64,
+        token: &CancellationToken, progress: F) -> Result<(), String> {
+        let start = self.prepare(args, cwd, duration, token).await?;
+        self.wait(start, token, progress).await?;
+        self.download(Path::new(args.last().ok_or("File hasil tidak ditemukan")?), token).await
+    }
+
+    async fn wait<F: FnMut(f64)>(&self, command: Command, token: &CancellationToken, mut progress: F) -> Result<Value, String> {
+        let mut start = Some(command);
+        let mut disconnected = None;
+        loop {
+            if token.is_cancelled() { self.cancel().await; return Err("Dibatalkan".into()); }
+            let action = if start.is_some() { "start" } else { "status" };
+            let command = start.take().unwrap_or_else(|| self.worker_command(action));
+            let response = tokio::time::timeout(Duration::from_secs(35), checked(command, token)).await;
+            let status = match response {
+                Ok(Ok(bytes)) => serde_json::from_slice::<Value>(&bytes).map_err(|_| "Status render VPS tidak valid".to_string()),
+                Ok(Err(error)) => Err(error),
+                Err(_) => Err("Koneksi VPS melewati batas waktu".into()),
+            };
+            match status {
+                Ok(meta) => {
+                    disconnected = None;
+                    if let Some(value) = meta["progress"].as_f64() { progress(value.clamp(0.0, 1.0)); }
+                    match meta["state"].as_str() {
+                        Some("completed") => return Ok(meta),
+                        Some("failed") => return Err(format!("Render VPS gagal: {}", meta["error"].as_str().unwrap_or("Proses render berhenti di VPS"))),
+                        Some("queued" | "running") => {},
+                        _ => return Err("Status render VPS tidak dikenali; periksa hasil video di pengaturan SSH".into()),
+                    }
+                },
+                Err(_) if token.is_cancelled() => { self.cancel().await; return Err("Dibatalkan".into()); },
+                Err(_) => {
+                    // Retry the idempotent start when SSH lost its acknowledgement.
+                    if action == "start" { start = Some(self.worker_command("start")); }
+                    let since = disconnected.get_or_insert_with(std::time::Instant::now);
+                    if since.elapsed() > Duration::from_secs(600) {
+                        return Err("Koneksi VPS terputus selama 10 menit. Render tetap berjalan di VPS; periksa hasil video di Pengaturan SSH untuk mengunduhnya.".into());
+                    }
+                }
+            }
+            tokio::select! {
+                _ = token.cancelled() => {},
+                _ = tokio::time::sleep(Duration::from_secs(3)) => {},
+            }
+        }
+    }
+
+    pub async fn prepare_receiver(&self, token: &CancellationToken) -> Result<(), String> {
+        let mut upload = command_for("scp", &self.profile);
+        upload.arg("-r").arg(&self.stage).arg(format!("{}:.cache/de-story-render/", self.profile));
+        checked(upload, token).await?;
+        Ok(())
+    }
+
+    pub async fn require_direct(&self, primary: &Self, token: &CancellationToken) -> Result<(),String> {
+        if !self.profile.eq_ignore_ascii_case(&primary.profile) {
+            checked(ssh(&self.profile,"command -v instabox-port >/dev/null"),token).await
+                .map_err(|_|format!("VPS {} memerlukan instabox-port untuk transfer langsung. Server lain tetap dapat memakai ekspor satu VPS.",self.profile))?;
+        }
+        Ok(())
+    }
+
+    pub async fn run_segments<F: FnMut(f64)>(&self, files: &[String], cwd: &Path, primary: &Self, token: &CancellationToken, mut progress: F) -> Result<(), String> {
+        for name in files { validate_segment_name(name)?; }
+        if files.is_empty() { return Err("Tidak ada klip untuk VPS ini".into()); }
+        let start = self.upload(cwd, "segments", files, token).await?;
+        let meta = self.wait(start, token, &mut progress).await?;
+        let received = meta["files"].as_array().filter(|items| items.len() == files.len()).ok_or("Daftar klip hasil VPS tidak lengkap")?;
+        for (expected, item) in files.iter().zip(received) {
+            if item["name"].as_str() != Some(expected.as_str()) || !item["sha256"].as_str().is_some_and(|s| s.len() == 64 && s.bytes().all(|b| b.is_ascii_hexdigit())) {
+                return Err("Metadata klip hasil VPS tidak valid".into());
+            }
+        }
+        let local = self.profile.eq_ignore_ascii_case(&primary.profile);
+        let transfer = async {
+            let ticket = if local { json!({"localJob":self.id,"files":received}) } else {
+                let bytes = checked(self.worker_command("start-transfer"), token).await?;
+                let ticket: Value = serde_json::from_slice(&bytes).map_err(|_|"Respons transfer langsung tidak valid")?;
+                if ticket["files"].as_array() != Some(received) { return Err("Daftar transfer langsung berbeda dari hasil render".into()); }
+                ticket
+            };
+            let filename = format!("transfer-{}.json", self.id);
+            let path = self.stage.join(&filename);
+            std::fs::write(&path, serde_json::to_vec(&ticket).map_err(|e|e.to_string())?).map_err(|e|e.to_string())?;
+            let mut scp = command_for("scp", &primary.profile);
+            scp.arg(&path).arg(format!("{}:.cache/de-story-render/{}/{}", primary.profile, primary.id, filename));
+            let uploaded = checked(scp, token).await;
+            let _ = std::fs::remove_file(&path);
+            uploaded?;
+            let command = ssh(&primary.profile, &format!("cd {} && exec python3 worker.py receive-transfer {} {}",
+                quote(&format!(".cache/de-story-render/{}", primary.id)), quote(&primary.id), quote(&filename)));
+            let bytes = checked(command, token).await?;
+            let receipt: Value = serde_json::from_slice(&bytes).map_err(|_|"Konfirmasi transfer VPS tidak valid")?;
+            if receipt["files"].as_array() != Some(received) { return Err("Konfirmasi checksum VPS utama tidak cocok".into()); }
+            Ok::<(),String>(())
+        }.await;
+        if !local {
+            let stopped = tokio::time::timeout(Duration::from_secs(35), checked(self.worker_command("stop-transfer"), &CancellationToken::new())).await;
+            if transfer.is_ok() && !matches!(stopped,Ok(Ok(_))) { return Err("Bagian telah diterima, tetapi port privat belum dapat ditutup; periksa Ports di InstaBox. Hasil sumber tetap disimpan.".into()); }
+        }
+        transfer?;
+        delete_result(&self.profile, &self.id).await.map_err(|e|format!("Bagian sudah diterima VPS utama tetapi belum terhapus dari VPS {}: {e}", self.profile))?;
+        Ok(())
     }
 
     pub async fn download(&self, destination: &Path, token: &CancellationToken) -> Result<(), String> {
@@ -332,9 +453,14 @@ impl SshExport {
     }
 
     pub async fn cancel(&self) {
-        let text = format!("python3 .local/share/de-story-ssh/worker.py cancel {}", quote(&self.id));
-        let _ = tokio::time::timeout(Duration::from_secs(20), checked(ssh(&self.profile, &text), &CancellationToken::new())).await;
+        let _ = tokio::time::timeout(Duration::from_secs(20), checked(self.worker_command("cancel"), &CancellationToken::new())).await;
     }
+}
+
+fn validate_segment_name(name: &str) -> Result<(), String> {
+    let number = name.strip_prefix("seg_").and_then(|v|v.strip_suffix(".mp4")).ok_or("Nama klip sementara tidak valid")?;
+    if !(3..=6).contains(&number.len()) || !number.bytes().all(|c|c.is_ascii_digit()) { return Err("Nama klip sementara tidak valid".into()); }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -399,6 +525,8 @@ mod tests {
 
     #[test]
     fn paths_and_remote_ids_reject_traversal() {
+        for name in ["../seg_000.mp4", "seg_0.mp4", "seg_1234567.mp4", "seg_000.mp4/extra", "seg_00a.mp4"] { assert!(validate_segment_name(name).is_err()); }
+        for name in ["seg_000.mp4", "seg_1000.mp4", "seg_123456.mp4"] { assert!(validate_segment_name(name).is_ok()); }
         for name in ["../result.mp4", "C:\\result.mp4", "/result.mp4", ".hidden.mp4", "a\n.mp4"] { assert!(safe_filename(name).is_err()); }
         assert!(safe_filename("cerita-2.mp4").is_ok());
         assert!(validate_id("../../home").is_err());

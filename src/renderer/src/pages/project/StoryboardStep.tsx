@@ -500,7 +500,7 @@ export function StoryboardStep() {
     return () => {
       live = false
     }
-  }, [videoLengths, project?.aspectRatio, project?.videoResolution])
+  }, [videoLengths, project?.videoModel, project?.aspectRatio, project?.videoResolution])
 
   if (!project) return null
   const selIndex = Math.max(0, clips.findIndex((c) => c.id === selectedClipId))
@@ -529,7 +529,7 @@ export function StoryboardStep() {
       title: `Jadikan ${n} klip video AI?`,
       body:
         `Setiap gambar klip dianimasikan dengan ${getVideoModel(project!.videoModel).name}, panjangnya mengikuti suara narasi klip itu.` +
-        (videoCredits != null ? ` Perkiraan biaya ${Math.round(videoCredits * 10) / 10} kredit Higgsfield.` : '') +
+        (videoCredits != null ? ` Perkiraan ${project.videoModel?.startsWith('flow:') ? 'hingga ' : ''}${Math.round(videoCredits * 10) / 10} kredit ${project.videoModel?.startsWith('flow:') ? 'Google Flow (sesuai model dan paket akun)' : project.videoModel?.startsWith('vidgen:') ? 'Vidgen' : 'Higgsfield'}.` : '') +
         ' Klip yang sudah punya video tidak dibuat ulang.',
       confirm: `Buat ${n} video`
     })
@@ -689,7 +689,7 @@ export function StoryboardStep() {
                       video={c.videoAssetId ? assets[c.videoAssetId] : null}
                       job={imageJob}
                     />
-                    <span className="absolute left-2 top-2 rounded-md bg-accent-soft px-[7px] py-0.5 font-mono text-xs text-white">{clipNumber(i)}</span>
+                    <span className="absolute left-2 top-2 rounded-md bg-black/80 px-[7px] py-0.5 font-mono text-xs text-white">{clipNumber(i)}</span>
                     {c.motionType === 'video' && (
                       <span className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-md bg-accent-soft text-accent-ink" title="Video AI">
                         <Film className="size-3.5" />

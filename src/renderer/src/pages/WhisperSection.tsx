@@ -93,7 +93,7 @@ export function WhisperSection({ settings, onSettings }: { settings: AppSettings
               <span className="font-semibold">Whisper Small · VPS {settings.whisperSshProfile || settings.exportSshProfile || 'belum dipilih'}</span>
               <Badge tone={server?.ready ? 'ok' : 'draft'}>{server?.ready ? 'Siap dipakai' : remoteBusy ? 'Memeriksa / menyiapkan' : 'Belum siap'}</Badge>
             </div>
-            <p className="text-sm text-ink-2">Memakai koneksi di Setting SSH. Audio dan naskah dikirim ke VPS, hasil waktu caption disimpan kembali di proyek. Audio sementara di VPS dibersihkan setelah proses selesai. Model lokal tidak perlu diunduh untuk mode ini.</p>
+            <p className="text-sm text-ink-2">Memakai koneksi di Pengaturan SSH. Audio dan naskah dikirim ke VPS, hasil waktu caption disimpan kembali di proyek. Audio sementara di VPS dibersihkan setelah proses selesai. Model lokal tidak perlu diunduh untuk mode ini.</p>
             <div className="flex flex-wrap gap-2">
               <Button loading={remoteBusy === 'check'} disabled={!!remoteBusy} onClick={() => void remoteAction(false)}>Periksa Whisper VPS</Button>
               <Button variant="accent" icon={<Download className="size-4" />} loading={remoteBusy === 'install'} disabled={!!remoteBusy} onClick={() => void remoteAction(true)}>Pasang Whisper di VPS</Button>

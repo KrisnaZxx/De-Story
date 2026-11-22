@@ -37,6 +37,7 @@ class WorkerSafetyTests(unittest.TestCase):
     def test_cleanup_preserves_result_metadata_and_other_jobs(self):
         (self.directory / "meta.json").write_text('{}')
         (self.directory / "result.mp4").write_bytes(b"completed video")
+        (self.directory / "worker.py").write_text("worker fixture")
         (self.directory / "seg_000.mp4").write_bytes(b"temporary segment")
         (self.directory / "inputs").mkdir()
         (self.directory / "inputs/source.png").write_bytes(b"source")
@@ -44,7 +45,7 @@ class WorkerSafetyTests(unittest.TestCase):
         other.mkdir()
         (other / "result.mp4").write_bytes(b"other video")
         worker.clean_temporary(self.directory)
-        self.assertEqual(sorted(p.name for p in self.directory.iterdir()), ["meta.json", "result.mp4"])
+        self.assertEqual(sorted(p.name for p in self.directory.iterdir()), ["meta.json", "result.mp4", "worker.py"])
         self.assertEqual((other / "result.mp4").read_bytes(), b"other video")
 
     def test_stale_pid_cannot_kill_a_different_process(self):
@@ -63,6 +64,26 @@ class WorkerSafetyTests(unittest.TestCase):
         meta = worker.read_meta(self.directory)
         self.assertEqual(meta["id"], self.identifier)
         self.assertEqual(meta["state"], "incomplete")
+
+    def test_segment_names_are_unique_plain_files_and_a_list(self):
+        self.assertEqual(worker.segment_outputs({"segments": ["seg_001.mp4", "seg_1000.mp4"]}), ["seg_001.mp4", "seg_1000.mp4"])
+        for invalid in (None, {}, "seg_000.mp4", [None], [[]], ["seg_000.mp4"] * 2, ["../seg_000.mp4"], ["seg_0.mp4"]):
+            with self.assertRaises(ValueError):
+                worker.segment_outputs({"segments": invalid})
+
+    def test_cleanup_keeps_verified_segment_batch(self):
+        (self.directory / "segments").mkdir()
+        (self.directory / "segments/seg_000.mp4").write_bytes(b"rendered clip")
+        (self.directory / "inputs").mkdir()
+        worker.clean_temporary(self.directory)
+        self.assertEqual((self.directory / "segments/seg_000.mp4").read_bytes(), b"rendered clip")
+        self.assertFalse((self.directory / "inputs").exists())
+
+    def test_progress_records_cannot_overwrite_the_error_tail(self):
+        for line in ("frame=8871", "fps=22.80", "out_time_us=295633333", "out_time_ms=295633333", "out_time=00:04:55.63", "stream_0_0_q=25.0", "speed=0.76x", "progress=continue"):
+            self.assertTrue(worker.progress_line(line))
+        for line in ("[libx264] allocation failed", "Error while filtering: Cannot allocate memory", "Conversion failed!"):
+            self.assertFalse(worker.progress_line(line))
 
 
 if __name__ == "__main__":

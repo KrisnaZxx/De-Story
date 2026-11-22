@@ -14,7 +14,7 @@ pub async fn request(info: &Flow2ApiPanelInfo, action: Option<Value>) -> Result<
     let url = format!("{}/api/studio/sessions",info.base_url);
     let query = if let Some(body) = action { client.post(url).json(&body) } else {client.get(url)}.bearer_auth(auth);
     let result = async {
-        let response = query.send().await.map_err(|_|"Pengaturan sesi Flow belum merespons. Pastikan Flow2API siap; bila baru diperbarui, buka ulang De Story.")?;
+        let response = query.send().await.map_err(|_|"Pengaturan sesi Flow belum merespons. Pastikan Flow2API siap; bila baru diperbarui, buka ulang Bara Studio.")?;
         let status = response.status();
         let value: Value = response.json().await.map_err(|_|"Versi backend belum menyediakan pengaturan sesi. Buka ulang aplikasi setelah pembaruan.")?;
         if !status.is_success() { return Err(value["detail"].as_str().unwrap_or("Pengaturan sesi belum berhasil. Periksa kesiapan backend.").chars().take(300).collect()); }

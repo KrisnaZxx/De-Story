@@ -105,7 +105,7 @@ export interface StudioApi {
     /** The full stored key, only for the "show key" button. */
     revealKey(provider: ApiProvider): Promise<string | null>
     testKey(provider: ApiProvider): Promise<KeyTestResult>
-    voices(provider: TtsProvider): Promise<VoiceOption[]>
+    voices(provider: TtsProvider, language?: string): Promise<VoiceOption[]>
   }
   models: {
     /** Live model list from the provider. Served from cache unless `refresh` is set or the cache is stale. */
@@ -152,7 +152,7 @@ export interface StudioApi {
     openExtensionFolder(): Promise<void>
     setFixedPort(port: number): Promise<Flow2ApiStatus>
     setParallelAccounts(count: number): Promise<AppSettings>
-    accountPool(): Promise<{ maxAccounts: number; imageAccounts: number; videoAccounts: number }>
+    accountPool(refreshCredits?: boolean): Promise<{ maxAccounts: number; imageAccounts: number; videoAccounts: number; accounts: {id: number; email: string; credits: number | null; active: boolean; imageBlocked: boolean; videoBlocked: boolean; lastVideo: {before: number | null; after: number | null; used: number | null; model: string; checkedAt: number} | null}[] }>
   }
   on: {
     whisper(cb: (status: WhisperStatus) => void): () => void

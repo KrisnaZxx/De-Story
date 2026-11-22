@@ -999,6 +999,7 @@ async def change_password(
 @router.get("/api/tokens")
 async def get_tokens(token: str = Depends(verify_admin_token)):
     """Get all tokens with statistics"""
+    from . import routes
     token_rows = await db.get_all_tokens_with_stats()
     to_iso = lambda value: value.isoformat() if hasattr(value, "isoformat") else value
     now = datetime.now(timezone.utc)
@@ -1045,6 +1046,9 @@ async def get_tokens(token: str = Depends(verify_admin_token)):
             else None,
         "use_count": row.get("use_count"),
         "credits": row.get("credits"),  # 🆕 余额
+        "last_video_credits": json.loads(row["last_video_credits"]) if row.get("last_video_credits") else None,
+        "image_quota_blocked": bool(routes.generation_handler and routes.generation_handler.load_balancer.quota_blocked(row.get("id"), row.get("credits"), "image")),
+        "video_quota_blocked": bool(routes.generation_handler and routes.generation_handler.load_balancer.quota_blocked(row.get("id"), row.get("credits"), "video")),
         "user_paygate_tier": row.get("user_paygate_tier"),
         "current_project_id": row.get("current_project_id"),  # 🆕 项目ID
         "current_project_name": row.get("current_project_name"),  # 🆕 项目名称

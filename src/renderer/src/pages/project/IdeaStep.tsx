@@ -176,7 +176,7 @@ export function IdeaStep() {
                     title: ready[p].reason ?? undefined
                   }))}
                 />
-                <VoicePicker provider={project.ttsProvider} value={project.ttsVoice} onChange={(v) => updateProject({ ttsVoice: v })} />
+                <VoicePicker provider={project.ttsProvider} value={project.ttsVoice} language={project.language} onChange={(v) => updateProject({ ttsVoice: v })} />
               </div>
               {blocked.length > 0 && (
                 <span className="text-[13px] text-muted">

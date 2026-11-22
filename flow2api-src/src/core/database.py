@@ -1248,7 +1248,11 @@ class Database:
                     COALESCE(CASE WHEN ts.today_date = ? THEN ts.today_video_count ELSE 0 END, 0) AS today_video_count,
                     COALESCE(CASE WHEN ts.today_date = ? THEN ts.today_error_count ELSE 0 END, 0) AS today_error_count,
                     COALESCE(ts.consecutive_error_count, 0) AS consecutive_error_count,
-                    ts.last_error_at AS last_error_at
+                    ts.last_error_at AS last_error_at,
+                    (SELECT json_extract(rl.response_body, '$.credits') FROM request_logs rl
+                     WHERE rl.token_id = t.id AND rl.operation = 'generate_video' AND rl.status_code = 200
+                     AND json_valid(rl.response_body) AND json_type(rl.response_body, '$.credits') = 'object'
+                     ORDER BY rl.id DESC LIMIT 1) AS last_video_credits
                 FROM tokens t
                 LEFT JOIN token_stats ts ON ts.token_id = t.id
                 ORDER BY t.created_at DESC

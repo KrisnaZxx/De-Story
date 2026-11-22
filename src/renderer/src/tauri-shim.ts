@@ -63,7 +63,7 @@ export const api: StudioApi = {
     clearKey: (provider) => invoke('settings_clear_key', { provider }),
     revealKey: (provider) => invoke('settings_reveal_key', { provider }),
     testKey: (provider) => invoke('settings_test_key', { provider }),
-    voices: (provider) => invoke('settings_voices', { provider })
+      voices: (provider, language) => invoke('settings_voices', { provider, language })
   },
   models: {
     list: (source, refresh) => invoke('models_list', { source, refresh })
@@ -108,7 +108,7 @@ export const api: StudioApi = {
     openExtensionFolder: () => invoke('flow2api_extension_folder'),
     setFixedPort: (port) => invoke('flow2api_set_fixed_port', { port }),
     setParallelAccounts: (count) => invoke('flow2api_set_parallel_accounts', { count }),
-    accountPool: () => invoke('flow2api_account_pool')
+    accountPool: (refreshCredits) => invoke('flow2api_account_pool', {refreshCredits})
   },
   on: {
     whisper: (cb) => {

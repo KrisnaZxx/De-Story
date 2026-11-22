@@ -387,7 +387,7 @@ pub async fn flow2api_set_parallel_accounts(
         }
     }
     let info = manager.panel_info()?;
-    crate::services::flow2api::account_pool(&info, Some(count)).await?;
+    crate::services::flow2api::account_pool(&info, Some(count), false).await?;
     let conn = db.lock().unwrap();
     patch_settings(&conn, json!({ "flow2apiParallelAccounts": count }))
 }
@@ -398,8 +398,8 @@ pub async fn flow2api_sessions(manager: State<'_,Arc<Flow2ApiManager>>, action: 
 }
 
 #[tauri::command]
-pub async fn flow2api_account_pool(manager: State<'_, Arc<Flow2ApiManager>>) -> Result<crate::services::flow2api::FlowAccountPool, String> {
-    crate::services::flow2api::account_pool(&manager.panel_info()?, None).await
+pub async fn flow2api_account_pool(manager: State<'_, Arc<Flow2ApiManager>>, refresh_credits: Option<bool>) -> Result<crate::services::flow2api::FlowAccountPool, String> {
+    crate::services::flow2api::account_pool(&manager.panel_info()?, None, refresh_credits.unwrap_or(false)).await
 }
 
 /// Address + credentials of Flow2API's own admin panel, so Settings can send
@@ -1013,11 +1013,13 @@ pub fn settings_reveal_key(db: State<'_, DbPool>, provider: String) -> Result<Op
 }
 
 #[tauri::command]
-pub async fn settings_voices(db: State<'_, DbPool>, provider: String) -> Result<Vec<Value>, String> {
+pub async fn settings_voices(db: State<'_, DbPool>, provider: String, language: Option<String>) -> Result<Vec<Value>, String> {
     if provider == "gemini" {
         Ok(gemini::list_voices())
     } else if provider == "speko" {
-        Ok(vec![json!({"id":"auto","name":"Otomatis sesuai bahasa","description":"Suara bawaan model Speko"})])
+        let (key, model) = { let conn = db.lock().unwrap();
+            (get_secret(&conn, "speko").unwrap_or_default(), get_settings(&conn)["spekoTtsModel"].as_str().unwrap_or("").to_string()) };
+        crate::services::speko::list_voices(&key, &model, language.as_deref().unwrap_or("id")).await
     } else {
         let key = {
             let conn = db.lock().unwrap();

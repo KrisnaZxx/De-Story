@@ -2,6 +2,8 @@
 
 import asyncio
 import random
+import time
+from .flow_quota import is_quota_error
 from typing import Optional, Dict
 from ..core.models import Token
 from ..core.config import config
@@ -32,6 +34,39 @@ class LoadBalancer:
             "default": None,
         }
         self._rr_lock = asyncio.Lock()
+        self._quota_cooldowns = {}
+
+    def mark_quota_exhausted(self, token, model, error):
+        if is_quota_error(error):
+            kind = "video" if "video" in str(model).lower() or "veo" in str(model).lower() else "image"
+            self._quota_cooldowns[(token.id, kind)] = (token.credits, time.monotonic() + 3600)
+
+    def quota_blocked(self, token_id, credits, kind):
+        saved = self._quota_cooldowns.get((token_id, kind))
+        if not saved:
+            return False
+        if time.monotonic() >= saved[1] or (credits or 0) > saved[0]:
+            self._quota_cooldowns.pop((token_id, kind), None)
+            return False
+        return True
+
+    def clear_quota_cooldown(self, token_id, model):
+        kind = "video" if "video" in str(model).lower() or "veo" in str(model).lower() else "image"
+        self._quota_cooldowns.pop((token_id, kind), None)
+
+    async def has_busy_account(self, video, model, excluded):
+        if not self.concurrency_manager:
+            return False
+        for token in await self.token_manager.get_active_tokens():
+            if token.id in excluded or self.quota_blocked(token.id, token.credits, "video" if video else "image"):
+                continue
+            if not (token.video_enabled if video else token.image_enabled) or not supports_model_for_tier(model, normalize_user_paygate_tier(token.user_paygate_tier)):
+                continue
+            image = await self.concurrency_manager.get_image_inflight(token.id)
+            moving = await self.concurrency_manager.get_video_inflight(token.id)
+            if image + moving > 0:
+                return True
+        return False
 
     async def _get_pending_count(
         self, token_id: int, for_image_generation: bool, for_video_generation: bool
@@ -173,6 +208,7 @@ class LoadBalancer:
         reserve: bool = False,
         enforce_concurrency_filter: bool = True,
         track_pending: bool = False,
+        exclude_ids: Optional[set[int]] = None,
     ) -> Optional[Token]:
         """
         Select a token using load-aware balancing
@@ -212,6 +248,11 @@ class LoadBalancer:
         required_tier = get_required_paygate_tier_for_model(model)
 
         for token in active_tokens:
+            if exclude_ids and token.id in exclude_ids:
+                continue
+            if self.quota_blocked(token.id, token.credits, "video" if for_video_generation else "image"):
+                filtered_reasons[token.id] = "Kredit atau kuota akun habis; menunggu pemulihan"
+                continue
             normalized_tier = normalize_user_paygate_tier(token.user_paygate_tier)
             if model and not supports_model_for_tier(model, normalized_tier):
                 filtered_reasons[token.id] = (
@@ -378,6 +419,10 @@ class LoadBalancer:
         active_tokens = await self.token_manager.get_active_tokens()
         if not active_tokens:
             return None
+
+        kind = "video" if for_video_generation else "image"
+        if all(self.quota_blocked(t.id, t.credits, kind) for t in active_tokens):
+            return "Kredit/kuota semua akun Flow habis. Perbarui saldo setelah kredit tersedia; akun lain tidak dipaksa mengulang."
 
         required_tier = get_required_paygate_tier_for_model(model)
         supported_tokens = []

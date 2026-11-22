@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Play, Square } from 'lucide-react'
 import type { TtsProvider, VoiceOption } from '@shared/types'
 import { Select } from './Select'
-import { cx, inputCls } from './ui'
+import { cx } from './ui'
 import { errorText } from '../lib/format'
 import { geminiPreview } from '../lib/voicePreviews'
 
@@ -26,7 +26,7 @@ function usePreviewPlayer(): { playing: string | null; stop: () => void; toggle:
   }
 }
 
-export function VoicePicker({ provider, value, onChange }: { provider: TtsProvider; value: string; onChange: (v: string) => void }) {
+export function VoicePicker({ provider, value, language = 'id', onChange }: { provider: TtsProvider; value: string; language?: string; onChange: (v: string) => void }) {
   const [voices, setVoices] = useState<VoiceOption[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const player = usePreviewPlayer()
@@ -37,7 +37,7 @@ export function VoicePicker({ provider, value, onChange }: { provider: TtsProvid
     setVoices(null)
     setError(null)
     window.api.settings
-      .voices(provider)
+      .voices(provider, language)
       .then((list) => {
         if (!alive) return
         // Gemini samples ship with the app; ElevenLabs sends its own preview links.
@@ -47,7 +47,7 @@ export function VoicePicker({ provider, value, onChange }: { provider: TtsProvid
       })
       .catch((e) => { if (alive) setError(errorText(e)) })
     return () => { alive = false }
-  }, [provider])
+  }, [provider, language])
 
   const urlOf = (id: string): string | null => voices?.find((v) => v.id === id)?.previewUrl ?? null
   const current = voices?.find((v) => v.id === value)
@@ -73,15 +73,13 @@ export function VoicePicker({ provider, value, onChange }: { provider: TtsProvid
     )
   }
 
-  if (provider === 'speko') return <div className="flex min-w-[220px] flex-1 flex-col gap-1"><input aria-label="Voice ID Speko (opsional)" className={cx(inputCls, 'h-12')} value={value === 'auto' ? '' : value} onChange={(e) => onChange(e.target.value)} placeholder="Suara otomatis · voice ID opsional" /><span className="text-xs text-muted">Kosongkan untuk suara bawaan sesuai bahasa. Voice ID mengikuti model yang dipilih.</span></div>
-
   if (error) return <p className="flex h-12 flex-1 items-center rounded-xl bg-bad-soft px-3.5 text-[13px] text-bad-ink">{error}</p>
   return (
     <>
       <Select
         label="Suara narator"
         size="lg"
-        value={value}
+        value={provider === 'speko' && !value ? 'auto' : value}
         onChange={onChange}
         disabled={!voices}
         className="min-w-[180px] flex-1"
@@ -89,14 +87,15 @@ export function VoicePicker({ provider, value, onChange }: { provider: TtsProvid
         renderAction={(o) => playButton(o.value, 'row')}
         options={
           voices
-            ? voices.map((v) =>
+            ? [...(provider === 'speko' && value && !voices.some(v => v.id === value) ? [{id:value,name:`Suara tersimpan · ${value}`,description:'Pilihan sebelumnya'}] : []), ...voices].map((v) =>
                 // Gemini tones are short; ElevenLabs labels are longer, so they go on a second line.
-                provider === 'gemini' ? { value: v.id, label: v.name, hint: v.description || undefined } : { value: v.id, label: v.name, note: v.description || undefined }
+                provider === 'gemini' || provider === 'speko' ? { value: v.id, label: v.name, hint: v.description || undefined } : { value: v.id, label: v.name, note: v.description || undefined }
               )
             : [{ value, label: 'Memuat daftar suara…' }]
         }
       />
       {current && playButton(current.id, 'field')}
+      {provider === 'speko' && voices && <span className="max-w-[240px] text-xs text-muted">{voices.some(v => v.previewUrl) ? 'Klik ▶ untuk contoh suara. Memilih suara tidak memakai saldo.' : 'Model ini tidak menyediakan audio contoh siap putar. Memilih suara tidak memakai saldo.'}</span>}
     </>
   )
 }

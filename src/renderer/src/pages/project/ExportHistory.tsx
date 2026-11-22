@@ -18,7 +18,8 @@ export function ExportHistory({open,onClose,onExport}: {open:boolean;onClose():v
       {!exports.length && <p className="rounded-xl bg-sand p-5 text-sm text-muted">Belum ada ekspor untuk proyek ini.</p>}
       {exports.map(j=><article key={j.id} className="flex flex-col gap-2 rounded-xl border border-line p-4">
         <div className="flex flex-wrap items-center justify-between gap-2"><strong className={j.status==='failed'?'text-bad-ink':j.status==='done'?'text-ok-ink':''}>{labels[j.status]}{isRunning(j)?` · ${Math.round(j.progress*100)}%`:''}</strong><time className="text-xs text-muted">{new Date(j.createdAt).toLocaleString('id-ID')}</time></div>
-        {j.exportOptions && <p className="text-xs text-ink-2">{j.exportOptions.resolution===2160?'4K':`${j.exportOptions.resolution}p`} · {j.exportOptions.fps} FPS · {j.exportOptions.target==='ssh'?`VPS ${j.exportOptions.sshProfile}`:'Lokal'}</p>}
+        {j.exportOptions && <p className="text-xs text-ink-2">{j.exportOptions.resolution===2160?'4K':j.exportOptions.resolution===1440?'2K (1440p)':`${j.exportOptions.resolution}p`} · {j.exportOptions.fps} FPS · {j.exportOptions.target==='ssh'?`VPS ${j.exportOptions.sshProfile}`:'Lokal'}</p>}
+        {j.exportOptions?.target==='ssh' && (j.exportOptions.sshProfiles?.length??0)>1 && <p className="text-xs text-muted">VPS render: {j.exportOptions.sshProfiles!.join(', ')} · penggabungan di {j.exportOptions.sshProfile}</p>}
         <p className="break-words text-sm text-ink-2">{j.status==='failed'?j.error:j.message}</p>
         {isRunning(j) && <Progress value={j.progress} />}
         {j.status==='done' && j.resultAssetId && <p className="break-all font-mono text-xs text-muted">{j.resultAssetId}</p>}
